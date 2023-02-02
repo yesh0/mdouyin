@@ -4,11 +4,31 @@ package main
 
 import (
 	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"github.com/hertz-contrib/logger/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func main() {
+	hlog.SetLogger(getLogger())
+
 	h := server.Default()
 
 	register(h)
 	h.Spin()
+}
+
+func getLogger() *zap.Logger {
+	logger := zap.NewLogger(zap.WithCoreEnc(zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
+		LevelKey:      "level",
+		TimeKey:       "ts",
+		MessageKey:    "msg",
+		CallerKey:     "caller",
+		NameKey:       "logger",
+		StacktraceKey: "stacktrace",
+		EncodeLevel:   zapcore.CapitalColorLevelEncoder,
+		EncodeTime:    zapcore.TimeEncoderOfLayout("15:04:05 Mon"),
+	})))
+	logger.SetLevel(hlog.LevelInfo)
+	return logger
 }
