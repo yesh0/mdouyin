@@ -3,38 +3,94 @@
 package main
 
 import (
+	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"gateway/internal/db"
 	"gateway/internal/jwt"
+	"os"
 	"time"
 
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/hertz-contrib/logger/zap"
+	"github.com/urfave/cli/v2"
 	"go.uber.org/zap/zapcore"
-	"gorm.io/driver/sqlite"
+)
+
+const (
+	cli_driver = "driver"
+	cli_db     = "db"
+	cli_secret = "secret"
 )
 
 func main() {
-	if err := initialize(); err != nil {
+	app := &cli.App{
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  cli_driver,
+				Value: "mysql",
+				Usage: "the sql driver",
+			},
+			&cli.StringFlag{
+				Name:     cli_db,
+				Required: true,
+				Usage:    "the db url",
+			},
+			&cli.StringFlag{
+				Name:  cli_secret,
+				Usage: "the hmac secret",
+			},
+		},
+		Action: run,
+	}
+
+	if err := app.Run(os.Args); err != nil {
 		hlog.Fatal(err)
+	}
+}
+
+func run(ctx *cli.Context) error {
+	if err := initialize(ctx); err != nil {
+		return err
 	}
 
 	h := server.Default()
 
 	register(h)
 	h.Spin()
+	return nil
 }
 
 // TODO: Read from config files or command line
-func initialize() error {
+func initialize(ctx *cli.Context) error {
 	hlog.SetLogger(getLogger())
 
-	if err := db.Init(sqlite.Open("file::memory:?cache=shared")); err != nil {
-		return err
+	if ctx.String(cli_secret) == "" {
+		secret := make([]byte, 256/8)
+		_, err := rand.Read(secret)
+		if err != nil {
+			return fmt.Errorf("unable to generate secrets")
+		} else {
+			return fmt.Errorf("generated secret: %s", hex.EncodeToString(secret))
+		}
 	}
 
-	if err := jwt.Init(hex.EncodeToString([]byte("no secret")), time.Hour*24*7); err != nil {
+	url := ctx.String(cli_db)
+	switch ctx.String(cli_driver) {
+	case "mysql":
+		if err := db.InitWithMySql(url); err != nil {
+			return err
+		}
+	case "sqlite":
+		if err := db.InitWithSqlite(url); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("unknown sql driver")
+	}
+
+	if err := jwt.Init(ctx.String(cli_secret), time.Hour*24*7); err != nil {
 		return err
 	}
 
