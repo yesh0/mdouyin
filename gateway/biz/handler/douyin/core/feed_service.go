@@ -4,10 +4,16 @@ package core
 
 import (
 	"context"
+	"os"
 
 	core "gateway/biz/model/douyin/core"
+	"gateway/internal/jwt"
+	"gateway/internal/videos"
+
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
+	"github.com/yesh0/mdouyin/common/utils"
 )
 
 // Feed .
@@ -30,12 +36,74 @@ func Feed(ctx context.Context, c *app.RequestContext) {
 // @router /douyin/publish/action/ [POST]
 func Publish(ctx context.Context, c *app.RequestContext) {
 	var err error
-	var req core.DouyinPublishActionRequest
-	err = c.BindAndValidate(&req)
+
+	// Videos saved as temporary files automatically by Hertz.
+	form, err := c.MultipartForm()
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.InvalidInput(c, err)
 		return
 	}
+
+	// We have to parse the form ourselves.
+	tokenFields := form.Value["token"]
+	if len(tokenFields) == 0 {
+		utils.ErrorUnauthorized.Write(c)
+		return
+	}
+	titleFields := form.Value["title"]
+	if len(titleFields) == 0 {
+		utils.ErrorWrongInputFormat.With("expecting a title").Write(c)
+		return
+	}
+	fileFields := form.File["data"]
+	if len(fileFields) == 0 {
+		utils.ErrorWrongInputFormat.With("expecting a video").Write(c)
+		return
+	}
+
+	_, _, err = jwt.Validate(tokenFields[0])
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
+
+	// Check the file
+	file := fileFields[0]
+	if err := videos.CheckMagic(file); err != nil {
+		utils.Error(c, err)
+		return
+	}
+
+	path, err := videos.NewLocalVideo()
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
+	err = c.SaveUploadedFile(file, path)
+	if err != nil {
+		hlog.Error("error saving uploaded file", err)
+		utils.ErrorFilesystem.Write(c)
+		return
+	}
+
+	// TODO: Queue and rate limit
+	go func() {
+		if err := videos.ValidateVideo(path); err != nil {
+			if err := os.Remove(path); err != nil {
+				hlog.Error("unable to remove file", err)
+			}
+			return
+		}
+		cover := path + ".png"
+		if err := videos.GenerateCover(path, cover); err != nil {
+			hlog.Error("unable to generate cover", err)
+			if err := os.Remove(path); err != nil {
+				hlog.Error("unable to remove file", err)
+			}
+			return
+		}
+		// TODO: Dispatch to other services
+	}()
 
 	resp := new(core.DouyinPublishActionResponse)
 

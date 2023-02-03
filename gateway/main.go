@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"gateway/internal/db"
 	"gateway/internal/jwt"
+	"gateway/internal/videos"
 	"os"
 	"time"
 
@@ -19,9 +20,10 @@ import (
 )
 
 const (
-	cli_driver = "driver"
-	cli_db     = "db"
-	cli_secret = "secret"
+	cli_driver  = "driver"
+	cli_db      = "db"
+	cli_secret  = "secret"
+	cli_storage = "storage"
 )
 
 func main() {
@@ -40,6 +42,11 @@ func main() {
 			&cli.StringFlag{
 				Name:  cli_secret,
 				Usage: "the hmac secret",
+			},
+			&cli.PathFlag{
+				Name:     cli_storage,
+				Required: true,
+				Usage:    "the video storage path",
 			},
 		},
 		Action: run,
@@ -91,6 +98,10 @@ func initialize(ctx *cli.Context) error {
 	}
 
 	if err := jwt.Init(ctx.String(cli_secret), time.Hour*24*7); err != nil {
+		return err
+	}
+
+	if err := videos.Init(ctx.Path(cli_storage)); err != nil {
 		return err
 	}
 

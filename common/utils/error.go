@@ -106,7 +106,7 @@ const (
 	ErrorA0604              ErrorCode = 0xA0604 // 用户 OSS 容量不足
 	ErrorA0605              ErrorCode = 0xA0605 // 用户配额已用光
 	ErrorA0700              ErrorCode = 0xA0700 // 用户上传文件异常
-	ErrorA0701              ErrorCode = 0xA0701 // 用户上传文件类型不匹配
+	ErrorIncorrectFileType  ErrorCode = 0xA0701 // 用户上传文件类型不匹配
 	ErrorA0702              ErrorCode = 0xA0702 // 用户上传文件太大
 	ErrorA0703              ErrorCode = 0xA0703 // 用户上传图片太大
 	ErrorA0704              ErrorCode = 0xA0704 // 用户上传视频太大
@@ -147,7 +147,7 @@ const (
 	ErrorB0314              ErrorCode = 0xB0314 // 系统连接池耗尽
 	ErrorB0315              ErrorCode = 0xB0315 // 系统线程池耗尽
 	ErrorB0320              ErrorCode = 0xB0320 // 系统资源访问异常
-	ErrorB0321              ErrorCode = 0xB0321 // 系统读取磁盘文件失败
+	ErrorFilesystem         ErrorCode = 0xB0321 // 系统读取磁盘文件失败
 	ErrorC0001              ErrorCode = 0xC0001 // 调用第三方服务出错
 	ErrorC0100              ErrorCode = 0xC0100 // 中间件服务出错
 	ErrorC0110              ErrorCode = 0xC0110 // RPC 服务出错
