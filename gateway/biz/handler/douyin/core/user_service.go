@@ -10,6 +10,7 @@ import (
 
 	core "gateway/biz/model/douyin/core"
 	"gateway/internal/db"
+	"gateway/internal/jwt"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
@@ -23,7 +24,7 @@ func Register(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinUserRegisterRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		utils.ClientError(c, err)
+		utils.InvalidInput(c, err)
 		return
 	}
 
@@ -32,10 +33,15 @@ func Register(ctx context.Context, c *app.RequestContext) {
 		utils.Error(c, err)
 		return
 	}
+	token, err := jwt.NewAuthorization(user.Id, req.Username)
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
 
 	resp := &core.DouyinUserRegisterResponse{
 		UserId: int64(user.Id),
-		// TODO: Token: "",
+		Token:  token,
 	}
 
 	c.JSON(consts.StatusOK, resp)
@@ -48,7 +54,7 @@ func Login(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinUserLoginRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		utils.ClientError(c, err)
+		utils.InvalidInput(c, err)
 		return
 	}
 
@@ -61,10 +67,15 @@ func Login(ctx context.Context, c *app.RequestContext) {
 		utils.Error(c, err)
 		return
 	}
+	token, err := jwt.NewAuthorization(user.Id, req.Username)
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
 
 	resp := &core.DouyinUserLoginResponse{
 		UserId: int64(user.Id),
-		// TODO: Token = "",
+		Token:  token,
 	}
 
 	c.JSON(consts.StatusOK, resp)
@@ -77,11 +88,14 @@ func Info(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinUserRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		utils.ClientError(c, err)
+		utils.InvalidInput(c, err)
 		return
 	}
 
-	// TODO: JWT verification in middleware
+	if _, err := jwt.AuthorizedUser(c); err != nil {
+		utils.Error(c, err)
+		return
+	}
 	user, err := db.FindUserById(uint64(req.UserId))
 	if err != nil {
 		utils.Error(c, err)

@@ -53,11 +53,11 @@ const (
 	ErrorA0240              ErrorCode = 0xA0240 // 用户验证码错误
 	ErrorA0241              ErrorCode = 0xA0241 // 用户验证码尝试次数超限
 	ErrorA0300              ErrorCode = 0xA0300 // 访问权限异常
-	ErrorA0301              ErrorCode = 0xA0301 // 访问未授权
+	ErrorUnauthorized       ErrorCode = 0xA0301 // 访问未授权
 	ErrorA0302              ErrorCode = 0xA0302 // 正在授权中
 	ErrorA0303              ErrorCode = 0xA0303 // 用户授权申请被拒绝
 	ErrorA0310              ErrorCode = 0xA0310 // 因访问对象隐私设置被拦截
-	ErrorA0311              ErrorCode = 0xA0311 // 授权已过期
+	ErrorExpiredToken       ErrorCode = 0xA0311 // 授权已过期
 	ErrorA0312              ErrorCode = 0xA0312 // 无权限使用 API
 	ErrorA0320              ErrorCode = 0xA0320 // 用户访问被拦截
 	ErrorA0321              ErrorCode = 0xA0321 // 黑名单用户
@@ -77,7 +77,7 @@ const (
 	ErrorA0413              ErrorCode = 0xA0413 // 缺少时间戳参数
 	ErrorA0414              ErrorCode = 0xA0414 // 非法的时间戳参数
 	ErrorA0420              ErrorCode = 0xA0420 // 请求参数值超出允许的范围
-	ErrorA0421              ErrorCode = 0xA0421 // 参数格式不匹配
+	ErrorWrongInputFormat   ErrorCode = 0xA0421 // 参数格式不匹配
 	ErrorA0422              ErrorCode = 0xA0422 // 地址不在服务范围
 	ErrorA0423              ErrorCode = 0xA0423 // 时间不在服务范围
 	ErrorA0424              ErrorCode = 0xA0424 // 金额超出限制
@@ -369,8 +369,9 @@ var messages = map[ErrorCode]string{
 	0xC0503: "邮件提醒服务失败",
 }
 
-func ClientError(c *app.RequestContext, err error) {
-	ErrorClient.With(err.Error()).Write(c)
+// Errors happen during parameter binding
+func InvalidInput(c *app.RequestContext, err error) {
+	ErrorWrongInputFormat.With(err.Error()).Write(c)
 }
 
 func Error(c *app.RequestContext, err error) {

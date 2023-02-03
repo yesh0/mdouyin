@@ -3,7 +3,10 @@
 package main
 
 import (
+	"encoding/hex"
 	"gateway/internal/db"
+	"gateway/internal/jwt"
+	"time"
 
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
@@ -23,10 +26,15 @@ func main() {
 	h.Spin()
 }
 
+// TODO: Read from config files or command line
 func initialize() error {
 	hlog.SetLogger(getLogger())
 
 	if err := db.Init(sqlite.Open("file::memory:?cache=shared")); err != nil {
+		return err
+	}
+
+	if err := jwt.Init(hex.EncodeToString([]byte("no secret")), time.Hour*24*7); err != nil {
 		return err
 	}
 

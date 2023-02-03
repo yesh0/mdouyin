@@ -4,9 +4,11 @@ package Core
 
 import (
 	"context"
+	"gateway/internal/jwt"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"github.com/yesh0/mdouyin/common/utils"
 )
 
 func rootMw() []app.HandlerFunc {
@@ -14,8 +16,21 @@ func rootMw() []app.HandlerFunc {
 	return []app.HandlerFunc{
 		// Logger
 		func(ctx context.Context, c *app.RequestContext) {
+			hlog.Trace(c.Request.Header.String())
 			c.Next(ctx)
 			hlog.Trace(c.Response.StatusCode(), c.Request.URI())
+		},
+		// JWT
+		func(ctx context.Context, c *app.RequestContext) {
+			token := c.Query("token")
+			if token != "" {
+				if err := jwt.Attach(c, token); err != nil {
+					utils.Error(c, err)
+					c.Abort()
+					return
+				}
+			}
+			c.Next(ctx)
 		},
 	}
 }
