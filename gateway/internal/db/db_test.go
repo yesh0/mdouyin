@@ -1,7 +1,7 @@
 package db_test
 
 import (
-	"gateway/db"
+	"gateway/internal/db"
 	"log"
 	"os"
 	"testing"

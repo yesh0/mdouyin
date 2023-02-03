@@ -3,12 +3,21 @@
 package Core
 
 import (
+	"context"
+
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
 )
 
 func rootMw() []app.HandlerFunc {
 	// your code...
-	return nil
+	return []app.HandlerFunc{
+		// Logger
+		func(ctx context.Context, c *app.RequestContext) {
+			c.Next(ctx)
+			hlog.Trace(c.Response.StatusCode(), c.Request.URI())
+		},
+	}
 }
 
 func _douyinMw() []app.HandlerFunc {

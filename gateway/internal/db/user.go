@@ -1,10 +1,9 @@
 package db
 
 import (
-	"fmt"
-
 	"github.com/alexedwards/argon2id"
 	"github.com/godruoyi/go-snowflake"
+	"github.com/yesh0/mdouyin/common/utils"
 	"gorm.io/gorm"
 )
 
@@ -13,6 +12,7 @@ const (
 	UserFieldName     = "Name"
 	UserFieldNickname = "NickName"
 	UserFieldPassword = "PasswordHash"
+	MinPasswordLength = 6
 )
 
 type UserDO struct {
@@ -30,16 +30,24 @@ func migrateUserTable() error {
 func CreateUser(name string, password string) (*UserDO, error) {
 	hash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
 	if err != nil {
-		return nil, err
+		return nil, utils.ErrorInternalError.Wrap(err)
 	}
+
+	// TODO: Make this requirement configurable
+	if len(password) < MinPasswordLength {
+		return nil, utils.ErrorPasswordLength
+	}
+
 	user := UserDO{
 		Id:           snowflake.ID(),
 		Name:         name,
+		Nickname:     "New User",
 		PasswordHash: hash,
 	}
 
+	// TODO: Cache
 	if err := db.Create(&user).Error; err != nil {
-		return nil, err
+		return nil, utils.ErrorUsernameConflict
 	}
 
 	return &user, nil
@@ -51,7 +59,7 @@ func FindUserWith(user *UserDO, fields ...string) (*UserDO, error) {
 		query = db.Select(fields)
 	}
 	if err := query.First(&user).Error; err != nil {
-		return nil, err
+		return nil, utils.ErrorNoSuchUser
 	}
 	return user, nil
 }
@@ -69,10 +77,10 @@ func FindUserById(id uint64, fields ...string) (*UserDO, error) {
 func (u *UserDO) VerifyPassword(password string) error {
 	match, err := argon2id.ComparePasswordAndHash(password, u.PasswordHash)
 	if err != nil {
-		return err
+		return utils.ErrorPasswordValidation.Wrap(err)
 	}
 	if !match {
-		return fmt.Errorf("username or password incorrect")
+		return utils.ErrorWrongPassword
 	}
 	return nil
 }

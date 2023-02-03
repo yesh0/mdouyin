@@ -4,10 +4,16 @@ package core
 
 import (
 	"context"
+	"crypto/md5"
+	"fmt"
+	"strings"
 
 	core "gateway/biz/model/douyin/core"
+	"gateway/internal/db"
+
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
+	"github.com/yesh0/mdouyin/common/utils"
 )
 
 // Register .
@@ -17,11 +23,20 @@ func Register(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinUserRegisterRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.ClientError(c, err)
 		return
 	}
 
-	resp := new(core.DouyinUserRegisterResponse)
+	user, err := db.CreateUser(req.Username, req.Password)
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
+
+	resp := &core.DouyinUserRegisterResponse{
+		UserId: int64(user.Id),
+		// TODO: Token: "",
+	}
 
 	c.JSON(consts.StatusOK, resp)
 }
@@ -33,11 +48,24 @@ func Login(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinUserLoginRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.ClientError(c, err)
 		return
 	}
 
-	resp := new(core.DouyinUserLoginResponse)
+	user, err := db.FindUserByName(req.Username)
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
+	if err := user.VerifyPassword(req.Password); err != nil {
+		utils.Error(c, err)
+		return
+	}
+
+	resp := &core.DouyinUserLoginResponse{
+		UserId: int64(user.Id),
+		// TODO: Token = "",
+	}
 
 	c.JSON(consts.StatusOK, resp)
 }
@@ -49,11 +77,27 @@ func Info(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinUserRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.ClientError(c, err)
 		return
 	}
 
-	resp := new(core.DouyinUserResponse)
+	// TODO: JWT verification in middleware
+	user, err := db.FindUserById(uint64(req.UserId))
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
+
+	// TODO: RPC call to fetch follower counts
+	resp := &core.DouyinUserResponse{
+		User: &core.User{
+			Id:       int64(user.Id),
+			Name:     user.Name,
+			IsFollow: false,
+			Avatar: fmt.Sprintf("https://cravatar.cn/avatar/%x",
+				md5.Sum([]byte(strings.ToLower(user.Name)))),
+		},
+	}
 
 	c.JSON(consts.StatusOK, resp)
 }

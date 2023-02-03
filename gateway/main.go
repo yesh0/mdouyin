@@ -3,19 +3,34 @@
 package main
 
 import (
+	"gateway/internal/db"
+
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/hertz-contrib/logger/zap"
 	"go.uber.org/zap/zapcore"
+	"gorm.io/driver/sqlite"
 )
 
 func main() {
-	hlog.SetLogger(getLogger())
+	if err := initialize(); err != nil {
+		hlog.Fatal(err)
+	}
 
 	h := server.Default()
 
 	register(h)
 	h.Spin()
+}
+
+func initialize() error {
+	hlog.SetLogger(getLogger())
+
+	if err := db.Init(sqlite.Open("file::memory:?cache=shared")); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func getLogger() *zap.Logger {
@@ -29,6 +44,6 @@ func getLogger() *zap.Logger {
 		EncodeLevel:   zapcore.CapitalColorLevelEncoder,
 		EncodeTime:    zapcore.TimeEncoderOfLayout("15:04:05 Mon"),
 	})))
-	logger.SetLevel(hlog.LevelInfo)
+	logger.SetLevel(hlog.LevelTrace)
 	return logger
 }
