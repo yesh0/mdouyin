@@ -1,8 +1,9 @@
 package jwt
 
 import (
+	"common/utils"
+
 	"github.com/cloudwego/hertz/pkg/app"
-	"github.com/yesh0/mdouyin/common/utils"
 )
 
 // Attaches authorization info to the current request context.

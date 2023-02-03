@@ -3,6 +3,7 @@
 package core
 
 import (
+	"common/utils"
 	"context"
 	"crypto/md5"
 	"fmt"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
-	"github.com/yesh0/mdouyin/common/utils"
 )
 
 // Register .

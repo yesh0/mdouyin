@@ -1,4 +1,4 @@
-module github.com/yesh0/mdouyin/common
+module common
 
 go 1.19
 

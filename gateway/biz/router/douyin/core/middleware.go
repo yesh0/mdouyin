@@ -3,12 +3,12 @@
 package Core
 
 import (
+	"common/utils"
 	"context"
 	"gateway/internal/jwt"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
-	"github.com/yesh0/mdouyin/common/utils"
 )
 
 func rootMw() []app.HandlerFunc {

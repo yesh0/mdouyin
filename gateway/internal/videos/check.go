@@ -1,10 +1,10 @@
 package videos
 
 import (
+	"common/utils"
 	"mime/multipart"
 
 	"github.com/h2non/filetype"
-	"github.com/yesh0/mdouyin/common/utils"
 )
 
 // Quickly checks if the file is not a video

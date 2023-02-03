@@ -1,13 +1,13 @@
 package db_test
 
 import (
+	"common/utils"
 	"gateway/internal/db"
 	"testing"
 	"time"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/stretchr/testify/assert"
-	"github.com/yesh0/mdouyin/common/utils"
 )
 
 const test_password = "test_password_1234567891011121314151617181920"

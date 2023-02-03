@@ -1,9 +1,10 @@
 package db
 
 import (
+	"common/utils"
+
 	"github.com/alexedwards/argon2id"
 	"github.com/godruoyi/go-snowflake"
-	"github.com/yesh0/mdouyin/common/utils"
 	"gorm.io/gorm"
 )
 

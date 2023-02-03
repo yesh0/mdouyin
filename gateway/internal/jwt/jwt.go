@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"common/utils"
 	"encoding/hex"
 	"fmt"
 	"strconv"
@@ -8,7 +9,6 @@ import (
 
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/yesh0/mdouyin/common/utils"
 )
 
 const (

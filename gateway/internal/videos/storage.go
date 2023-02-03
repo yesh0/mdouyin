@@ -1,6 +1,7 @@
 package videos
 
 import (
+	"common/utils"
 	"crypto/md5"
 	"fmt"
 	"os"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/godruoyi/go-snowflake"
-	"github.com/yesh0/mdouyin/common/utils"
 )
 
 var storage string
