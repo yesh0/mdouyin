@@ -30,6 +30,7 @@ func (s *FeedServiceImpl) List(ctx context.Context, req *rpc.DouyinPublishListRe
 
 // Relation implements the FeedServiceImpl interface.
 func (s *FeedServiceImpl) Relation(ctx context.Context, req *rpc.DouyinRelationActionRequest) (resp *rpc.DouyinRelationActionResponse, err error) {
+	resp = new(rpc.DouyinRelationActionResponse)
 	switch req.ActionType {
 	case 1: // Follow
 		if err := db.Follow(req.RequestUserId, req.ToUserId); err != utils.ErrorOk {
@@ -52,7 +53,9 @@ func (s *FeedServiceImpl) Following(ctx context.Context, req *rpc.DouyinRelation
 		resp.StatusCode = int32(e)
 		return
 	}
-	resp.UserList = list
+	resp = &rpc.DouyinRelationFollowListResponse{
+		UserList: list,
+	}
 	return
 }
 
@@ -63,7 +66,9 @@ func (s *FeedServiceImpl) Follower(ctx context.Context, req *rpc.DouyinRelationF
 		resp.StatusCode = int32(e)
 		return
 	}
-	resp.UserList = list
+	resp = &rpc.DouyinRelationFollowerListResponse{
+		UserList: list,
+	}
 	return
 }
 
@@ -74,6 +79,8 @@ func (s *FeedServiceImpl) Friend(ctx context.Context, req *rpc.DouyinRelationFri
 		resp.StatusCode = int32(e)
 		return
 	}
-	resp.UserList = list
+	resp = &rpc.DouyinRelationFriendListResponse{
+		UserList: list,
+	}
 	return
 }
