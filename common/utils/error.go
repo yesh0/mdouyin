@@ -88,7 +88,7 @@ const (
 	ErrorA0431              ErrorCode = 0xA0431 // 包含违禁敏感词
 	ErrorA0432              ErrorCode = 0xA0432 // 图片包含违禁信息
 	ErrorA0433              ErrorCode = 0xA0433 // 文件侵犯版权
-	ErrorA0440              ErrorCode = 0xA0440 // 用户操作异常
+	ErrorUnanticipated      ErrorCode = 0xA0440 // 用户操作异常
 	ErrorA0441              ErrorCode = 0xA0441 // 用户支付超时
 	ErrorA0442              ErrorCode = 0xA0442 // 确认订单超时
 	ErrorA0443              ErrorCode = 0xA0443 // 订单已关闭
@@ -98,7 +98,7 @@ const (
 	ErrorA0503              ErrorCode = 0xA0503 // 用户操作请等待
 	ErrorA0504              ErrorCode = 0xA0504 // WebSocket 连接异常
 	ErrorA0505              ErrorCode = 0xA0505 // WebSocket 连接断开
-	ErrorA0506              ErrorCode = 0xA0506 // 用户重复请求
+	ErrorRepeatedRequests   ErrorCode = 0xA0506 // 用户重复请求
 	ErrorA0600              ErrorCode = 0xA0600 // 用户资源异常
 	ErrorA0601              ErrorCode = 0xA0601 // 账户余额不足
 	ErrorA0602              ErrorCode = 0xA0602 // 用户磁盘空间不足
@@ -176,7 +176,7 @@ const (
 	ErrorC0230              ErrorCode = 0xC0230 // 缓存服务超时
 	ErrorC0240              ErrorCode = 0xC0240 // 配置服务超时
 	ErrorC0250              ErrorCode = 0xC0250 // 数据库服务超时
-	ErrorC0300              ErrorCode = 0xC0300 // 数据库服务出错
+	ErrorDatabaseError      ErrorCode = 0xC0300 // 数据库服务出错
 	ErrorC0311              ErrorCode = 0xC0311 // 表不存在
 	ErrorC0312              ErrorCode = 0xC0312 // 列不存在
 	ErrorC0321              ErrorCode = 0xC0321 // 多表关联中存在多个相同名称的列
@@ -372,6 +372,17 @@ var messages = map[ErrorCode]string{
 // Errors happen during parameter binding
 func InvalidInput(c *app.RequestContext, err error) {
 	ErrorWrongInputFormat.With(err.Error()).Write(c)
+}
+
+func From(err error) ErrorCode {
+	if err == nil {
+		return ErrorOk
+	} else if code, ok := err.(ErrorCode); ok {
+		return code
+	} else {
+		hlog.Warn("unrecognized error", err)
+		return ErrorInternalError
+	}
 }
 
 func Error(c *app.RequestContext, err error) {

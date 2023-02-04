@@ -11,6 +11,6 @@ func main() {
 	err := svr.Run()
 
 	if err != nil {
-		log.Println(err.Error())
+		log.Fatalln(err.Error())
 	}
 }
