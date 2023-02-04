@@ -3,12 +3,34 @@
 package core
 
 import (
+	"common/utils"
 	"context"
 
 	core "gateway/biz/model/douyin/core"
+	"gateway/internal/db"
+	"gateway/internal/jwt"
+	serivces "gateway/internal/services"
+	"gateway/kitex_gen/douyin/rpc"
+
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 )
+
+func toUserList(ids []int64) ([]*core.User, error) {
+	users, err := db.FindUsersByIds(ids)
+	if err != nil {
+		return nil, utils.ErrorInternalError
+	}
+	converted := make([]*core.User, 0, len(users))
+	for _, u := range users {
+		converted = append(converted, &core.User{
+			Id:   int64(u.Id),
+			Name: u.Name,
+		})
+	}
+	return converted, nil
+}
 
 // Relation .
 // @router /douyin/relation/action/ [POST]
@@ -17,7 +39,26 @@ func Relation(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinRelationActionRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.InvalidInput(c, err)
+		return
+	}
+
+	user, _, err := jwt.Validate(req.Token)
+	if err != nil {
+		utils.ErrorUnauthorized.Write(c)
+		return
+	}
+
+	r, err := serivces.Feed.Relation(context.Background(), &rpc.DouyinRelationActionRequest{
+		RequestUserId: int64(user),
+		ToUserId:      req.ToUserId,
+		ActionType:    req.ActionType,
+	})
+	if err != nil {
+		utils.ErrorRpcTimeout.Write(c)
+		return
+	}
+	if utils.RpcError(c, r.StatusCode) {
 		return
 	}
 
@@ -33,11 +74,37 @@ func Following(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinRelationFollowListRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.InvalidInput(c, err)
 		return
 	}
 
-	resp := new(core.DouyinRelationFollowListResponse)
+	user, err := jwt.AuthorizedUser(c)
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
+
+	r, err := serivces.Feed.Following(context.Background(), &rpc.DouyinRelationFollowListRequest{
+		UserId:        req.UserId,
+		RequestUserId: int64(user),
+	})
+	if err != nil {
+		hlog.Warn(err)
+		utils.ErrorRpcTimeout.Write(c)
+		return
+	}
+	if utils.RpcError(c, r.StatusCode) {
+		return
+	}
+
+	list, err := toUserList(r.UserList)
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
+	resp := &core.DouyinRelationFollowListResponse{
+		UserList: list,
+	}
 
 	c.JSON(consts.StatusOK, resp)
 }
@@ -49,11 +116,36 @@ func Follower(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinRelationFollowerListRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.InvalidInput(c, err)
 		return
 	}
 
-	resp := new(core.DouyinRelationFollowerListResponse)
+	user, err := jwt.AuthorizedUser(c)
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
+
+	r, err := serivces.Feed.Follower(context.Background(), &rpc.DouyinRelationFollowerListRequest{
+		UserId:        req.UserId,
+		RequestUserId: int64(user),
+	})
+	if err != nil {
+		utils.ErrorRpcTimeout.Write(c)
+		return
+	}
+	if utils.RpcError(c, r.StatusCode) {
+		return
+	}
+
+	list, err := toUserList(r.UserList)
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
+	resp := &core.DouyinRelationFollowerListResponse{
+		UserList: list,
+	}
 
 	c.JSON(consts.StatusOK, resp)
 }
@@ -65,11 +157,36 @@ func Friend(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinRelationFriendListRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.InvalidInput(c, err)
 		return
 	}
 
-	resp := new(core.DouyinRelationFriendListResponse)
+	user, err := jwt.AuthorizedUser(c)
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
+
+	r, err := serivces.Feed.Friend(context.Background(), &rpc.DouyinRelationFriendListRequest{
+		UserId:        req.UserId,
+		RequestUserId: int64(user),
+	})
+	if err != nil {
+		utils.ErrorRpcTimeout.Write(c)
+		return
+	}
+	if utils.RpcError(c, r.StatusCode) {
+		return
+	}
+
+	list, err := toUserList(r.UserList)
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
+	resp := &core.DouyinRelationFriendListResponse{
+		UserList: list,
+	}
 
 	c.JSON(consts.StatusOK, resp)
 }

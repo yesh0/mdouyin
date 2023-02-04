@@ -75,6 +75,14 @@ func FindUserById(id uint64, fields ...string) (*UserDO, error) {
 	return FindUserWith(&user, fields...)
 }
 
+func FindUsersByIds(id []int64) (users []UserDO, err error) {
+	if err = db.Find(&users, id).Error; err != nil {
+		db.Error = nil
+		return
+	}
+	return
+}
+
 func (u *UserDO) VerifyPassword(password string) error {
 	match, err := argon2id.ComparePasswordAndHash(password, u.PasswordHash)
 	if err != nil {

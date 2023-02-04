@@ -62,3 +62,16 @@ func TestInsecurePassword(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, user)
 }
+
+func TestIds(t *testing.T) {
+	u1, err := db.CreateUser("id_user1", "12345678")
+	assert.Nil(t, err)
+	u2, err := db.CreateUser("id_user2", "12345678")
+	assert.Nil(t, err)
+
+	users, err := db.FindUsersByIds([]int64{int64(u1.Id), int64(u2.Id)})
+	assert.Nil(t, err)
+	assert.Len(t, users, 2)
+	assert.Equal(t, u1.Name, users[0].Name)
+	assert.Equal(t, u2.Name, users[1].Name)
+}

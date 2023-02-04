@@ -171,7 +171,7 @@ const (
 	ErrorC0153              ErrorCode = 0xC0153 // 域名解析服务出错
 	ErrorC0154              ErrorCode = 0xC0154 // 网关服务出错
 	ErrorC0200              ErrorCode = 0xC0200 // 第三方系统执行超时
-	ErrorC0210              ErrorCode = 0xC0210 // RPC 执行超时
+	ErrorRpcTimeout         ErrorCode = 0xC0210 // RPC 执行超时
 	ErrorC0220              ErrorCode = 0xC0220 // 消息投递超时
 	ErrorC0230              ErrorCode = 0xC0230 // 缓存服务超时
 	ErrorC0240              ErrorCode = 0xC0240 // 配置服务超时
@@ -372,6 +372,14 @@ var messages = map[ErrorCode]string{
 // Errors happen during parameter binding
 func InvalidInput(c *app.RequestContext, err error) {
 	ErrorWrongInputFormat.With(err.Error()).Write(c)
+}
+
+func RpcError(c *app.RequestContext, code int32) bool {
+	if code != 0 {
+		ErrorCode(code).Write(c)
+		return true
+	}
+	return false
 }
 
 func From(err error) ErrorCode {

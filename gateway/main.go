@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"gateway/internal/db"
 	"gateway/internal/jwt"
+	"gateway/internal/services"
 	"gateway/internal/videos"
 	"os"
 	"time"
@@ -62,7 +63,7 @@ func run(ctx *cli.Context) error {
 		return err
 	}
 
-	h := server.Default()
+	h := server.Default(server.WithHostPorts(":8000"))
 
 	register(h)
 	h.Spin()
@@ -102,6 +103,10 @@ func initialize(ctx *cli.Context) error {
 	}
 
 	if err := videos.Init(ctx.Path(cli_storage)); err != nil {
+		return err
+	}
+
+	if err := services.Init(); err != nil {
 		return err
 	}
 
