@@ -12,8 +12,8 @@ func TestMutualFollow(t *testing.T) {
 	userCount := 200
 	for i := 0; i < userCount; i++ {
 		for j := i + 1; j < userCount; j++ {
-			assert.Equal(t, utils.ErrorOk, db.Follow(uint64(i), uint64(j)))
-			assert.Equal(t, utils.ErrorOk, db.Follow(uint64(j), uint64(i)))
+			assert.Equal(t, utils.ErrorOk, db.Follow(int64(i), int64(j)))
+			assert.Equal(t, utils.ErrorOk, db.Follow(int64(j), int64(i)))
 		}
 	}
 	max := userCount - 1
@@ -32,8 +32,8 @@ func TestMutualFollow(t *testing.T) {
 
 	for i := 0; i < userCount; i++ {
 		for j := i + 1; j < userCount; j++ {
-			assert.Equal(t, utils.ErrorOk, db.Unfollow(uint64(i), uint64(j)))
-			assert.Equal(t, utils.ErrorOk, db.Unfollow(uint64(j), uint64(i)))
+			assert.Equal(t, utils.ErrorOk, db.Unfollow(int64(i), int64(j)))
+			assert.Equal(t, utils.ErrorOk, db.Unfollow(int64(j), int64(i)))
 		}
 	}
 	list, err = db.FollowerList(5)
@@ -47,7 +47,7 @@ func TestMutualFollow(t *testing.T) {
 	assert.Len(t, list, 0)
 }
 
-func assertRelation(t assert.TestingT, follower, followee uint64, follows bool, mutual bool) {
+func assertRelation(t assert.TestingT, follower, followee int64, follows bool, mutual bool) {
 	list, err := db.FollowerList(followee)
 	assert.Equal(t, utils.ErrorOk, err)
 	if follows {
