@@ -6337,7 +6337,7 @@ func (p *DouyinRelationFollowListRequest) Field2DeepEqual(src int64) bool {
 type DouyinRelationFollowListResponse struct {
 	StatusCode int32   `thrift:"StatusCode,1" frugal:"1,default,i32" json:"StatusCode"`
 	StatusMsg  *string `thrift:"StatusMsg,2,optional" frugal:"2,optional,string" json:"StatusMsg,omitempty"`
-	UserList   []*User `thrift:"UserList,3" frugal:"3,default,list<User>" json:"UserList"`
+	UserList   []int64 `thrift:"UserList,3" frugal:"3,default,list<i64>" json:"UserList"`
 }
 
 func NewDouyinRelationFollowListResponse() *DouyinRelationFollowListResponse {
@@ -6361,7 +6361,7 @@ func (p *DouyinRelationFollowListResponse) GetStatusMsg() (v string) {
 	return *p.StatusMsg
 }
 
-func (p *DouyinRelationFollowListResponse) GetUserList() (v []*User) {
+func (p *DouyinRelationFollowListResponse) GetUserList() (v []int64) {
 	return p.UserList
 }
 func (p *DouyinRelationFollowListResponse) SetStatusCode(val int32) {
@@ -6370,7 +6370,7 @@ func (p *DouyinRelationFollowListResponse) SetStatusCode(val int32) {
 func (p *DouyinRelationFollowListResponse) SetStatusMsg(val *string) {
 	p.StatusMsg = val
 }
-func (p *DouyinRelationFollowListResponse) SetUserList(val []*User) {
+func (p *DouyinRelationFollowListResponse) SetUserList(val []int64) {
 	p.UserList = val
 }
 
@@ -6486,11 +6486,13 @@ func (p *DouyinRelationFollowListResponse) ReadField3(iprot thrift.TProtocol) er
 	if err != nil {
 		return err
 	}
-	p.UserList = make([]*User, 0, size)
+	p.UserList = make([]int64, 0, size)
 	for i := 0; i < size; i++ {
-		_elem := NewUser()
-		if err := _elem.Read(iprot); err != nil {
+		var _elem int64
+		if v, err := iprot.ReadI64(); err != nil {
 			return err
+		} else {
+			_elem = v
 		}
 
 		p.UserList = append(p.UserList, _elem)
@@ -6578,11 +6580,11 @@ func (p *DouyinRelationFollowListResponse) writeField3(oprot thrift.TProtocol) (
 	if err = oprot.WriteFieldBegin("UserList", thrift.LIST, 3); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteListBegin(thrift.STRUCT, len(p.UserList)); err != nil {
+	if err := oprot.WriteListBegin(thrift.I64, len(p.UserList)); err != nil {
 		return err
 	}
 	for _, v := range p.UserList {
-		if err := v.Write(oprot); err != nil {
+		if err := oprot.WriteI64(v); err != nil {
 			return err
 		}
 	}
@@ -6643,14 +6645,14 @@ func (p *DouyinRelationFollowListResponse) Field2DeepEqual(src *string) bool {
 	}
 	return true
 }
-func (p *DouyinRelationFollowListResponse) Field3DeepEqual(src []*User) bool {
+func (p *DouyinRelationFollowListResponse) Field3DeepEqual(src []int64) bool {
 
 	if len(p.UserList) != len(src) {
 		return false
 	}
 	for i, v := range p.UserList {
 		_src := src[i]
-		if !v.DeepEqual(_src) {
+		if v != _src {
 			return false
 		}
 	}
@@ -6883,7 +6885,7 @@ func (p *DouyinRelationFollowerListRequest) Field2DeepEqual(src int64) bool {
 type DouyinRelationFollowerListResponse struct {
 	StatusCode int32   `thrift:"StatusCode,1" frugal:"1,default,i32" json:"StatusCode"`
 	StatusMsg  *string `thrift:"StatusMsg,2,optional" frugal:"2,optional,string" json:"StatusMsg,omitempty"`
-	UserList   []*User `thrift:"UserList,3" frugal:"3,default,list<User>" json:"UserList"`
+	UserList   []int64 `thrift:"UserList,3" frugal:"3,default,list<i64>" json:"UserList"`
 }
 
 func NewDouyinRelationFollowerListResponse() *DouyinRelationFollowerListResponse {
@@ -6907,7 +6909,7 @@ func (p *DouyinRelationFollowerListResponse) GetStatusMsg() (v string) {
 	return *p.StatusMsg
 }
 
-func (p *DouyinRelationFollowerListResponse) GetUserList() (v []*User) {
+func (p *DouyinRelationFollowerListResponse) GetUserList() (v []int64) {
 	return p.UserList
 }
 func (p *DouyinRelationFollowerListResponse) SetStatusCode(val int32) {
@@ -6916,7 +6918,7 @@ func (p *DouyinRelationFollowerListResponse) SetStatusCode(val int32) {
 func (p *DouyinRelationFollowerListResponse) SetStatusMsg(val *string) {
 	p.StatusMsg = val
 }
-func (p *DouyinRelationFollowerListResponse) SetUserList(val []*User) {
+func (p *DouyinRelationFollowerListResponse) SetUserList(val []int64) {
 	p.UserList = val
 }
 
@@ -7032,11 +7034,13 @@ func (p *DouyinRelationFollowerListResponse) ReadField3(iprot thrift.TProtocol) 
 	if err != nil {
 		return err
 	}
-	p.UserList = make([]*User, 0, size)
+	p.UserList = make([]int64, 0, size)
 	for i := 0; i < size; i++ {
-		_elem := NewUser()
-		if err := _elem.Read(iprot); err != nil {
+		var _elem int64
+		if v, err := iprot.ReadI64(); err != nil {
 			return err
+		} else {
+			_elem = v
 		}
 
 		p.UserList = append(p.UserList, _elem)
@@ -7124,11 +7128,11 @@ func (p *DouyinRelationFollowerListResponse) writeField3(oprot thrift.TProtocol)
 	if err = oprot.WriteFieldBegin("UserList", thrift.LIST, 3); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteListBegin(thrift.STRUCT, len(p.UserList)); err != nil {
+	if err := oprot.WriteListBegin(thrift.I64, len(p.UserList)); err != nil {
 		return err
 	}
 	for _, v := range p.UserList {
-		if err := v.Write(oprot); err != nil {
+		if err := oprot.WriteI64(v); err != nil {
 			return err
 		}
 	}
@@ -7189,14 +7193,14 @@ func (p *DouyinRelationFollowerListResponse) Field2DeepEqual(src *string) bool {
 	}
 	return true
 }
-func (p *DouyinRelationFollowerListResponse) Field3DeepEqual(src []*User) bool {
+func (p *DouyinRelationFollowerListResponse) Field3DeepEqual(src []int64) bool {
 
 	if len(p.UserList) != len(src) {
 		return false
 	}
 	for i, v := range p.UserList {
 		_src := src[i]
-		if !v.DeepEqual(_src) {
+		if v != _src {
 			return false
 		}
 	}
@@ -7429,7 +7433,7 @@ func (p *DouyinRelationFriendListRequest) Field2DeepEqual(src int64) bool {
 type DouyinRelationFriendListResponse struct {
 	StatusCode int32   `thrift:"StatusCode,1" frugal:"1,default,i32" json:"StatusCode"`
 	StatusMsg  *string `thrift:"StatusMsg,2,optional" frugal:"2,optional,string" json:"StatusMsg,omitempty"`
-	UserList   []*User `thrift:"UserList,3" frugal:"3,default,list<User>" json:"UserList"`
+	UserList   []int64 `thrift:"UserList,3" frugal:"3,default,list<i64>" json:"UserList"`
 }
 
 func NewDouyinRelationFriendListResponse() *DouyinRelationFriendListResponse {
@@ -7453,7 +7457,7 @@ func (p *DouyinRelationFriendListResponse) GetStatusMsg() (v string) {
 	return *p.StatusMsg
 }
 
-func (p *DouyinRelationFriendListResponse) GetUserList() (v []*User) {
+func (p *DouyinRelationFriendListResponse) GetUserList() (v []int64) {
 	return p.UserList
 }
 func (p *DouyinRelationFriendListResponse) SetStatusCode(val int32) {
@@ -7462,7 +7466,7 @@ func (p *DouyinRelationFriendListResponse) SetStatusCode(val int32) {
 func (p *DouyinRelationFriendListResponse) SetStatusMsg(val *string) {
 	p.StatusMsg = val
 }
-func (p *DouyinRelationFriendListResponse) SetUserList(val []*User) {
+func (p *DouyinRelationFriendListResponse) SetUserList(val []int64) {
 	p.UserList = val
 }
 
@@ -7578,11 +7582,13 @@ func (p *DouyinRelationFriendListResponse) ReadField3(iprot thrift.TProtocol) er
 	if err != nil {
 		return err
 	}
-	p.UserList = make([]*User, 0, size)
+	p.UserList = make([]int64, 0, size)
 	for i := 0; i < size; i++ {
-		_elem := NewUser()
-		if err := _elem.Read(iprot); err != nil {
+		var _elem int64
+		if v, err := iprot.ReadI64(); err != nil {
 			return err
+		} else {
+			_elem = v
 		}
 
 		p.UserList = append(p.UserList, _elem)
@@ -7670,11 +7676,11 @@ func (p *DouyinRelationFriendListResponse) writeField3(oprot thrift.TProtocol) (
 	if err = oprot.WriteFieldBegin("UserList", thrift.LIST, 3); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteListBegin(thrift.STRUCT, len(p.UserList)); err != nil {
+	if err := oprot.WriteListBegin(thrift.I64, len(p.UserList)); err != nil {
 		return err
 	}
 	for _, v := range p.UserList {
-		if err := v.Write(oprot); err != nil {
+		if err := oprot.WriteI64(v); err != nil {
 			return err
 		}
 	}
@@ -7735,14 +7741,14 @@ func (p *DouyinRelationFriendListResponse) Field2DeepEqual(src *string) bool {
 	}
 	return true
 }
-func (p *DouyinRelationFriendListResponse) Field3DeepEqual(src []*User) bool {
+func (p *DouyinRelationFriendListResponse) Field3DeepEqual(src []int64) bool {
 
 	if len(p.UserList) != len(src) {
 		return false
 	}
 	for i, v := range p.UserList {
 		_src := src[i]
-		if !v.DeepEqual(_src) {
+		if v != _src {
 			return false
 		}
 	}

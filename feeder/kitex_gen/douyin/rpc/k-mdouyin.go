@@ -5049,13 +5049,16 @@ func (p *DouyinRelationFollowListResponse) FastReadField3(buf []byte) (int, erro
 	if err != nil {
 		return offset, err
 	}
-	p.UserList = make([]*User, 0, size)
+	p.UserList = make([]int64, 0, size)
 	for i := 0; i < size; i++ {
-		_elem := NewUser()
-		if l, err := _elem.FastRead(buf[offset:]); err != nil {
+		var _elem int64
+		if v, l, err := bthrift.Binary.ReadI64(buf[offset:]); err != nil {
 			return offset, err
 		} else {
 			offset += l
+
+			_elem = v
+
 		}
 
 		p.UserList = append(p.UserList, _elem)
@@ -5123,13 +5126,14 @@ func (p *DouyinRelationFollowListResponse) fastWriteField3(buf []byte, binaryWri
 	offset := 0
 	offset += bthrift.Binary.WriteFieldBegin(buf[offset:], "UserList", thrift.LIST, 3)
 	listBeginOffset := offset
-	offset += bthrift.Binary.ListBeginLength(thrift.STRUCT, 0)
+	offset += bthrift.Binary.ListBeginLength(thrift.I64, 0)
 	var length int
 	for _, v := range p.UserList {
 		length++
-		offset += v.FastWriteNocopy(buf[offset:], binaryWriter)
+		offset += bthrift.Binary.WriteI64(buf[offset:], v)
+
 	}
-	bthrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRUCT, length)
+	bthrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.I64, length)
 	offset += bthrift.Binary.WriteListEnd(buf[offset:])
 	offset += bthrift.Binary.WriteFieldEnd(buf[offset:])
 	return offset
@@ -5158,10 +5162,9 @@ func (p *DouyinRelationFollowListResponse) field2Length() int {
 func (p *DouyinRelationFollowListResponse) field3Length() int {
 	l := 0
 	l += bthrift.Binary.FieldBeginLength("UserList", thrift.LIST, 3)
-	l += bthrift.Binary.ListBeginLength(thrift.STRUCT, len(p.UserList))
-	for _, v := range p.UserList {
-		l += v.BLength()
-	}
+	l += bthrift.Binary.ListBeginLength(thrift.I64, len(p.UserList))
+	var tmpV int64
+	l += bthrift.Binary.I64Length(int64(tmpV)) * len(p.UserList)
 	l += bthrift.Binary.ListEndLength()
 	l += bthrift.Binary.FieldEndLength()
 	return l
@@ -5479,13 +5482,16 @@ func (p *DouyinRelationFollowerListResponse) FastReadField3(buf []byte) (int, er
 	if err != nil {
 		return offset, err
 	}
-	p.UserList = make([]*User, 0, size)
+	p.UserList = make([]int64, 0, size)
 	for i := 0; i < size; i++ {
-		_elem := NewUser()
-		if l, err := _elem.FastRead(buf[offset:]); err != nil {
+		var _elem int64
+		if v, l, err := bthrift.Binary.ReadI64(buf[offset:]); err != nil {
 			return offset, err
 		} else {
 			offset += l
+
+			_elem = v
+
 		}
 
 		p.UserList = append(p.UserList, _elem)
@@ -5553,13 +5559,14 @@ func (p *DouyinRelationFollowerListResponse) fastWriteField3(buf []byte, binaryW
 	offset := 0
 	offset += bthrift.Binary.WriteFieldBegin(buf[offset:], "UserList", thrift.LIST, 3)
 	listBeginOffset := offset
-	offset += bthrift.Binary.ListBeginLength(thrift.STRUCT, 0)
+	offset += bthrift.Binary.ListBeginLength(thrift.I64, 0)
 	var length int
 	for _, v := range p.UserList {
 		length++
-		offset += v.FastWriteNocopy(buf[offset:], binaryWriter)
+		offset += bthrift.Binary.WriteI64(buf[offset:], v)
+
 	}
-	bthrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRUCT, length)
+	bthrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.I64, length)
 	offset += bthrift.Binary.WriteListEnd(buf[offset:])
 	offset += bthrift.Binary.WriteFieldEnd(buf[offset:])
 	return offset
@@ -5588,10 +5595,9 @@ func (p *DouyinRelationFollowerListResponse) field2Length() int {
 func (p *DouyinRelationFollowerListResponse) field3Length() int {
 	l := 0
 	l += bthrift.Binary.FieldBeginLength("UserList", thrift.LIST, 3)
-	l += bthrift.Binary.ListBeginLength(thrift.STRUCT, len(p.UserList))
-	for _, v := range p.UserList {
-		l += v.BLength()
-	}
+	l += bthrift.Binary.ListBeginLength(thrift.I64, len(p.UserList))
+	var tmpV int64
+	l += bthrift.Binary.I64Length(int64(tmpV)) * len(p.UserList)
 	l += bthrift.Binary.ListEndLength()
 	l += bthrift.Binary.FieldEndLength()
 	return l
@@ -5909,13 +5915,16 @@ func (p *DouyinRelationFriendListResponse) FastReadField3(buf []byte) (int, erro
 	if err != nil {
 		return offset, err
 	}
-	p.UserList = make([]*User, 0, size)
+	p.UserList = make([]int64, 0, size)
 	for i := 0; i < size; i++ {
-		_elem := NewUser()
-		if l, err := _elem.FastRead(buf[offset:]); err != nil {
+		var _elem int64
+		if v, l, err := bthrift.Binary.ReadI64(buf[offset:]); err != nil {
 			return offset, err
 		} else {
 			offset += l
+
+			_elem = v
+
 		}
 
 		p.UserList = append(p.UserList, _elem)
@@ -5983,13 +5992,14 @@ func (p *DouyinRelationFriendListResponse) fastWriteField3(buf []byte, binaryWri
 	offset := 0
 	offset += bthrift.Binary.WriteFieldBegin(buf[offset:], "UserList", thrift.LIST, 3)
 	listBeginOffset := offset
-	offset += bthrift.Binary.ListBeginLength(thrift.STRUCT, 0)
+	offset += bthrift.Binary.ListBeginLength(thrift.I64, 0)
 	var length int
 	for _, v := range p.UserList {
 		length++
-		offset += v.FastWriteNocopy(buf[offset:], binaryWriter)
+		offset += bthrift.Binary.WriteI64(buf[offset:], v)
+
 	}
-	bthrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.STRUCT, length)
+	bthrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.I64, length)
 	offset += bthrift.Binary.WriteListEnd(buf[offset:])
 	offset += bthrift.Binary.WriteFieldEnd(buf[offset:])
 	return offset
@@ -6018,10 +6028,9 @@ func (p *DouyinRelationFriendListResponse) field2Length() int {
 func (p *DouyinRelationFriendListResponse) field3Length() int {
 	l := 0
 	l += bthrift.Binary.FieldBeginLength("UserList", thrift.LIST, 3)
-	l += bthrift.Binary.ListBeginLength(thrift.STRUCT, len(p.UserList))
-	for _, v := range p.UserList {
-		l += v.BLength()
-	}
+	l += bthrift.Binary.ListBeginLength(thrift.I64, len(p.UserList))
+	var tmpV int64
+	l += bthrift.Binary.I64Length(int64(tmpV)) * len(p.UserList)
 	l += bthrift.Binary.ListEndLength()
 	l += bthrift.Binary.FieldEndLength()
 	return l

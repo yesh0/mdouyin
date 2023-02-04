@@ -143,7 +143,7 @@ struct DouyinRelationFollowListRequest {
 struct DouyinRelationFollowListResponse {
     1: i32 StatusCode (api.body="status_code", api.query="status_code", api.form="status_code") // 状态码，0-成功，其他值-失败
     2: optional string StatusMsg (api.body="status_msg", api.query="status_msg", api.form="status_msg") // 返回状态描述
-    3: list<User> UserList (api.body="user_list", api.query="user_list", api.form="user_list") // 用户信息列表
+    3: list<i64> UserList (api.body="user_list", api.query="user_list", api.form="user_list") // 用户信息列表
 }
 struct DouyinRelationFollowerListRequest {
     1: i64 UserId (api.body="user_id", api.query="user_id", api.form="user_id") // 用户id
@@ -153,7 +153,7 @@ struct DouyinRelationFollowerListRequest {
 struct DouyinRelationFollowerListResponse {
     1: i32 StatusCode (api.body="status_code", api.query="status_code", api.form="status_code") // 状态码，0-成功，其他值-失败
     2: optional string StatusMsg (api.body="status_msg", api.query="status_msg", api.form="status_msg") // 返回状态描述
-    3: list<User> UserList (api.body="user_list", api.query="user_list", api.form="user_list") // 用户列表
+    3: list<i64> UserList (api.body="user_list", api.query="user_list", api.form="user_list") // 用户列表
 }
 struct DouyinRelationFriendListRequest {
     1: i64 UserId (api.body="user_id", api.query="user_id", api.form="user_id") // 用户id
@@ -163,7 +163,7 @@ struct DouyinRelationFriendListRequest {
 struct DouyinRelationFriendListResponse {
     1: i32 StatusCode (api.body="status_code", api.query="status_code", api.form="status_code") // 状态码，0-成功，其他值-失败
     2: optional string StatusMsg (api.body="status_msg", api.query="status_msg", api.form="status_msg") // 返回状态描述
-    3: list<User> UserList (api.body="user_list", api.query="user_list", api.form="user_list") // 用户列表
+    3: list<i64> UserList (api.body="user_list", api.query="user_list", api.form="user_list") // 用户列表
 }
 struct DouyinMessageChatRequest {
     // 1: string Token (api.body="token", api.query="token", api.form="token") // 用户鉴权token

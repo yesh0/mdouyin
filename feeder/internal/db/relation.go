@@ -9,14 +9,14 @@ import (
 )
 
 type RelationDO struct {
-	Followee  uint64 `gorm:"<-:create;primaryKey;autoIncrement=false"`
-	Follower  uint64 `gorm:"<-:create;primaryKey;autoIncrement=false;index"`
+	Followee  int64 `gorm:"<-:create;primaryKey;autoIncrement=false"`
+	Follower  int64 `gorm:"<-:create;primaryKey;autoIncrement=false;index"`
 	Mutual    bool
 	CreatedAt time.Time
 }
 
 // TODO: Cache
-func Follow(follower, followee uint64) utils.ErrorCode {
+func Follow(follower, followee int64) utils.ErrorCode {
 	if follower == followee {
 		return utils.ErrorUnanticipated
 	}
@@ -55,7 +55,7 @@ func Follow(follower, followee uint64) utils.ErrorCode {
 	}))
 }
 
-func Unfollow(follower, followee uint64) utils.ErrorCode {
+func Unfollow(follower, followee int64) utils.ErrorCode {
 	if follower == followee {
 		return utils.ErrorUnanticipated
 	}
@@ -85,8 +85,8 @@ func Unfollow(follower, followee uint64) utils.ErrorCode {
 	}))
 }
 
-func FollowerList(user uint64) ([]uint64, utils.ErrorCode) {
-	var followers []uint64
+func FollowerList(user int64) ([]int64, utils.ErrorCode) {
+	var followers []int64
 	if err := db.Model(&RelationDO{}).
 		Select("follower").Where("followee = ?", user).
 		Limit(300).Find(&followers).Error; err != nil {
@@ -96,8 +96,8 @@ func FollowerList(user uint64) ([]uint64, utils.ErrorCode) {
 	return followers, utils.ErrorOk
 }
 
-func FolloweeList(user uint64) ([]uint64, utils.ErrorCode) {
-	var followees []uint64
+func FolloweeList(user int64) ([]int64, utils.ErrorCode) {
+	var followees []int64
 	if err := db.Model(&RelationDO{}).
 		Select("followee").Where("follower = ?", user).
 		Limit(300).Find(&followees).Error; err != nil {
@@ -107,8 +107,8 @@ func FolloweeList(user uint64) ([]uint64, utils.ErrorCode) {
 	return followees, utils.ErrorOk
 }
 
-func FriendList(user uint64) ([]uint64, utils.ErrorCode) {
-	var friends []uint64
+func FriendList(user int64) ([]int64, utils.ErrorCode) {
+	var friends []int64
 	if err := db.Model(&RelationDO{}).Select("followee").
 		Where("follower = ?", user).Where("mutual = ?", true).
 		Limit(300).Find(&friends).Error; err != nil {
