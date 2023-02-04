@@ -2,7 +2,7 @@
 package reactionservice
 
 import (
-	rpc "gateway/kitex_gen/douyin/rpc"
+	rpc "common/kitex_gen/douyin/rpc"
 	server "github.com/cloudwego/kitex/server"
 )
 

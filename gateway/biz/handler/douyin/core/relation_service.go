@@ -6,11 +6,11 @@ import (
 	"common/utils"
 	"context"
 
+	"common/kitex_gen/douyin/rpc"
 	core "gateway/biz/model/douyin/core"
 	"gateway/internal/db"
 	"gateway/internal/jwt"
 	serivces "gateway/internal/services"
-	"gateway/kitex_gen/douyin/rpc"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"

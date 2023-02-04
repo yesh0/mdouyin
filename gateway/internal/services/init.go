@@ -1,8 +1,8 @@
 package services
 
 import (
+	"common/kitex_gen/douyin/rpc/feedservice"
 	"fmt"
-	"gateway/kitex_gen/douyin/rpc/feedservice"
 
 	"github.com/cloudwego/kitex/client"
 	etcd "github.com/kitex-contrib/registry-etcd"
