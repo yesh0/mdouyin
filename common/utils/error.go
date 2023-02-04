@@ -404,7 +404,7 @@ func Error(c *app.RequestContext, err error) {
 		c.SetContentType("application/json")
 		c.String(
 			consts.StatusOK, `{"status_code":0x%x,"status_msg":"%s"}`,
-			ErrorInternalError, err.Error(),
+			uint32(ErrorInternalError), err.Error(),
 		)
 	}
 }
@@ -412,7 +412,7 @@ func Error(c *app.RequestContext, err error) {
 func (code ErrorCode) Write(c *app.RequestContext) {
 	if message, ok := messages[code]; ok {
 		c.SetContentType("application/json")
-		c.String(consts.StatusOK, `{"status_code":0x%x,"status_msg":"%s"}`, code, message)
+		c.String(consts.StatusOK, `{"status_code":0x%x,"status_msg":"%s"}`, uint32(code), message)
 	} else {
 		hlog.Error("unrecognized error code", code)
 		ErrorInternalError.Write(c)
@@ -434,7 +434,7 @@ func (err ErrorWithMessage) Write(c *app.RequestContext) {
 	c.SetContentType("application/json")
 	c.String(
 		consts.StatusOK, `{"status_code":0x%x,"status_msg":"%s"}`,
-		err.Code, err.Message,
+		uint32(err.Code), err.Message,
 	)
 }
 
