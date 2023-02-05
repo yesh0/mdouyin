@@ -4,7 +4,7 @@ namespace go douyin.core
 service FeedService {
     DouyinFeedResponse Feed (1: DouyinFeedRequest Req) (api.get="/douyin/feed/")
     DouyinPublishActionResponse Publish (1: DouyinPublishActionRequest Req) (api.post="/douyin/publish/action/")
-    DouyinPublishListResponse List (1: DouyinPublishListRequest Req) (api.get="/douyin/publish/action/")
+    DouyinPublishListResponse List (1: DouyinPublishListRequest Req) (api.get="/douyin/publish/list/")
 }
 
 service UserService {

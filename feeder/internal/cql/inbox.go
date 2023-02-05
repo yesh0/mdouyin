@@ -1,10 +1,11 @@
 package cql
 
 import (
+	"common/snowy"
+	"common/utils"
 	"time"
 
 	"github.com/gocql/gocql"
-	"github.com/godruoyi/go-snowflake"
 )
 
 const (
@@ -13,14 +14,11 @@ const (
 	stmt_insert_inbox = "INSERT INTO feed.inbox (user, item) VALUES (?, ?)"
 )
 
-var snowflakeStart = time.Date(2008, 11, 10, 23, 0, 0, 0, time.UTC)
-
-func ListInbox(user int64, latest time.Time, limit int) ([]int64, error) {
+func ListInbox(user int64, latest time.Time, limit int) ([]int64, utils.ErrorCode) {
 	scanner := session.Query(
 		stmt_list_inbox,
 		user,
-		latest.Sub(snowflakeStart).Milliseconds()<<
-			(snowflake.MachineIDLength+snowflake.SequenceLength),
+		snowy.FromLowerTime(latest),
 		limit,
 	).Iter().Scanner()
 
@@ -34,12 +32,12 @@ func ListInbox(user int64, latest time.Time, limit int) ([]int64, error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, err
+		return nil, utils.ErrorDatabaseError
 	}
-	return items, nil
+	return items, utils.ErrorOk
 }
 
-func PushInboxes(item int64, users []int64) error {
+func PushInboxes(item int64, users []int64) utils.ErrorCode {
 	batch := session.NewBatch(gocql.UnloggedBatch)
 	batch.Entries = make([]gocql.BatchEntry, 0, len(users))
 	for _, user := range users {
@@ -50,7 +48,7 @@ func PushInboxes(item int64, users []int64) error {
 		})
 	}
 	if err := session.ExecuteBatch(batch); err != nil {
-		return err
+		return utils.ErrorDatabaseError
 	}
-	return nil
+	return utils.ErrorOk
 }

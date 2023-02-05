@@ -374,6 +374,10 @@ func InvalidInput(c *app.RequestContext, err error) {
 	ErrorWrongInputFormat.With(err.Error()).Write(c)
 }
 
+func (code ErrorCode) IsCode(i int32) bool {
+	return code == ErrorCode(i)
+}
+
 func RpcError(c *app.RequestContext, code int32) bool {
 	if code != 0 {
 		ErrorCode(code).Write(c)

@@ -61,7 +61,10 @@ func Register(r *server.Hertz) {
 			{
 				_action2 := _publish.Group("/action", _action2Mw()...)
 				_action2.POST("/", append(_publish0Mw(), core.Publish)...)
-				_action2.GET("/", append(_list1Mw(), core.List)...)
+			}
+			{
+				_list1 := _publish.Group("/list", _list1Mw()...)
+				_list1.GET("/", append(_list2Mw(), core.List)...)
 			}
 		}
 		{
@@ -73,22 +76,22 @@ func Register(r *server.Hertz) {
 			{
 				_follow := _relation.Group("/follow", _followMw()...)
 				{
-					_list2 := _follow.Group("/list", _list2Mw()...)
-					_list2.GET("/", append(_followingMw(), core.Following)...)
+					_list3 := _follow.Group("/list", _list3Mw()...)
+					_list3.GET("/", append(_followingMw(), core.Following)...)
 				}
 			}
 			{
 				_follower := _relation.Group("/follower", _followerMw()...)
 				{
-					_list3 := _follower.Group("/list", _list3Mw()...)
-					_list3.GET("/", append(_follower0Mw(), core.Follower)...)
+					_list4 := _follower.Group("/list", _list4Mw()...)
+					_list4.GET("/", append(_follower0Mw(), core.Follower)...)
 				}
 			}
 			{
 				_friend := _relation.Group("/friend", _friendMw()...)
 				{
-					_list4 := _friend.Group("/list", _list4Mw()...)
-					_list4.GET("/", append(_friend0Mw(), core.Friend)...)
+					_list5 := _friend.Group("/list", _list5Mw()...)
+					_list5.GET("/", append(_friend0Mw(), core.Friend)...)
 				}
 			}
 		}

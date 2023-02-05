@@ -57,7 +57,7 @@ func NewAuthorization(id int64, name string) (string, error) {
 	return tokenString, nil
 }
 
-func Validate(tokenString string) (uint64, string, error) {
+func Validate(tokenString string) (int64, string, error) {
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); ok {
 			return hmacSecret, nil
@@ -85,7 +85,7 @@ func Validate(tokenString string) (uint64, string, error) {
 		if time.Since(time.Unix(createdAt, 0)) >= duration {
 			return 0, "", utils.ErrorExpiredToken
 		} else {
-			return uint64(id), claims[JwtNameField].(string), nil
+			return id, claims[JwtNameField].(string), nil
 		}
 	} else {
 		hlog.Error("jwt inconsistency detected")

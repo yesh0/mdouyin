@@ -75,8 +75,11 @@ func FindUserById(id int64, fields ...string) (*UserDO, error) {
 	return FindUserWith(&user, fields...)
 }
 
-func FindUsersByIds(id []int64) (users []UserDO, err error) {
-	if err = db.Find(&users, id).Error; err != nil {
+func FindUsersByIds(ids []int64) (users []UserDO, err error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	if err = db.Find(&users, ids).Error; err != nil {
 		db.Error = nil
 		return
 	}

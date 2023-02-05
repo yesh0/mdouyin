@@ -234,3 +234,8 @@ func _register0Mw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _list5Mw() []app.HandlerFunc {
+	// your code...
+	return nil
+}

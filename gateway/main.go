@@ -21,6 +21,7 @@ import (
 )
 
 const (
+	cli_base    = "base"
 	cli_driver  = "driver"
 	cli_db      = "db"
 	cli_secret  = "secret"
@@ -48,6 +49,11 @@ func main() {
 				Name:     cli_storage,
 				Required: true,
 				Usage:    "the video storage path",
+			},
+			&cli.StringFlag{
+				Name:     cli_base,
+				Required: true,
+				Usage:    "the base url",
 			},
 		},
 		Action: run,
@@ -102,7 +108,7 @@ func initialize(ctx *cli.Context) error {
 		return err
 	}
 
-	if err := videos.Init(ctx.Path(cli_storage)); err != nil {
+	if err := videos.Init(ctx.Path(cli_storage), ctx.String(cli_base)); err != nil {
 		return err
 	}
 

@@ -3,12 +3,15 @@
 package core
 
 import (
+	"common/kitex_gen/douyin/rpc"
 	"common/utils"
 	"context"
 	"os"
+	"path"
 
 	core "gateway/biz/model/douyin/core"
 	"gateway/internal/jwt"
+	"gateway/internal/services"
 	"gateway/internal/videos"
 
 	"github.com/cloudwego/hertz/pkg/app"
@@ -23,13 +26,56 @@ func Feed(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinFeedRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.InvalidInput(c, err)
+		return
+	}
+
+	id, err := jwt.AuthorizedUser(c)
+	if err != nil {
+		id = 0
+	}
+
+	r, err := services.Feed.Feed(ctx, &rpc.DouyinFeedRequest{
+		LatestTime:    req.LatestTime,
+		RequestUserId: int64(id),
+	})
+	if err != nil {
+		utils.ErrorRpcTimeout.Write(c)
+		return
+	}
+	if utils.RpcError(c, r.StatusCode) {
 		return
 	}
 
 	resp := new(core.DouyinFeedResponse)
+	resp.NextTime = r.NextTime
+	resp.VideoList, err = generateVideoList(r.VideoList)
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
 
 	c.JSON(consts.StatusOK, resp)
+}
+
+func generateVideoList(info []*rpc.VideoInfo) (vs []*core.Video, err error) {
+	vs = make([]*core.Video, 0, len(info))
+	for _, video := range info {
+		// TODO: Fetch video info
+		// TODO: Fetch counts
+		vs = append(vs, &core.Video{
+			Id: video.Id,
+			Author: &core.User{
+				Id:     video.Author,
+				Name:   "",
+				Avatar: "",
+			},
+			PlayUrl:  videos.BaseUrl() + path.Join("/media", video.PlayUrl),
+			CoverUrl: videos.BaseUrl() + path.Join("/media", video.CoverUrl),
+			Title:    video.Title,
+		})
+	}
+	return
 }
 
 // Publish .
@@ -51,6 +97,7 @@ func Publish(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 	titleFields := form.Value["title"]
+	title := titleFields[0]
 	if len(titleFields) == 0 {
 		utils.ErrorWrongInputFormat.With("expecting a title").Write(c)
 		return
@@ -61,7 +108,7 @@ func Publish(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	_, _, err = jwt.Validate(tokenFields[0])
+	id, _, err := jwt.Validate(tokenFields[0])
 	if err != nil {
 		utils.Error(c, err)
 		return
@@ -74,12 +121,13 @@ func Publish(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	path, err := videos.NewLocalVideo()
+	relPath, err := videos.NewLocalVideo()
 	if err != nil {
 		utils.Error(c, err)
 		return
 	}
-	err = c.SaveUploadedFile(file, path)
+	fullPath := videos.Storage(relPath)
+	err = c.SaveUploadedFile(file, fullPath)
 	if err != nil {
 		hlog.Error("error saving uploaded file", err)
 		utils.ErrorFilesystem.Write(c)
@@ -88,21 +136,36 @@ func Publish(ctx context.Context, c *app.RequestContext) {
 
 	// TODO: Queue and rate limit
 	go func() {
-		if err := videos.ValidateVideo(path); err != nil {
-			if err := os.Remove(path); err != nil {
+		if err := videos.ValidateVideo(fullPath); err != nil {
+			if err := os.Remove(fullPath); err != nil {
 				hlog.Error("unable to remove file", err)
 			}
 			return
 		}
-		cover := path + ".png"
-		if err := videos.GenerateCover(path, cover); err != nil {
+		cover := relPath + ".png"
+		if err := videos.GenerateCover(fullPath, videos.Storage(cover)); err != nil {
 			hlog.Error("unable to generate cover", err)
-			if err := os.Remove(path); err != nil {
+			if err := os.Remove(fullPath); err != nil {
 				hlog.Error("unable to remove file", err)
 			}
 			return
 		}
-		// TODO: Dispatch to other services
+
+		r, err := services.Feed.Publish(context.Background(), &rpc.DouyinPublishActionRequest{
+			RequestUserId: id,
+			Video: &rpc.VideoInfo{
+				Author:   id,
+				PlayUrl:  relPath,
+				CoverUrl: cover,
+				Title:    title,
+			},
+		})
+		if err != nil {
+			hlog.Warn("rpc failed", err)
+		}
+		if !utils.ErrorOk.IsCode(r.StatusCode) {
+			hlog.Warn("rpc failed", utils.ErrorCode(r.StatusCode).Error())
+		}
 	}()
 
 	resp := new(core.DouyinPublishActionResponse)
@@ -117,11 +180,31 @@ func List(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinPublishListRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.InvalidInput(c, err)
 		return
 	}
 
-	resp := new(core.DouyinPublishListResponse)
+	r, err := services.Feed.List(ctx, &rpc.DouyinPublishListRequest{
+		UserId:        req.UserId,
+		RequestUserId: 0,
+	})
+	if err != nil {
+		utils.ErrorRpcTimeout.Write(c)
+		return
+	}
+	if !utils.ErrorOk.IsCode(r.StatusCode) {
+		utils.ErrorCode(r.StatusCode).Write(c)
+		return
+	}
+
+	videos, err := generateVideoList(r.VideoList)
+	if err != nil {
+		utils.Error(c, err)
+	}
+
+	resp := &core.DouyinPublishListResponse{
+		VideoList: videos,
+	}
 
 	c.JSON(consts.StatusOK, resp)
 }

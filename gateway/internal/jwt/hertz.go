@@ -23,12 +23,12 @@ func Attach(c *app.RequestContext, token string) error {
 	return nil
 }
 
-func AuthorizedUser(c *app.RequestContext) (uint64, error) {
+func AuthorizedUser(c *app.RequestContext) (int64, error) {
 	if c.Keys == nil {
 		return 0, utils.ErrorUnauthorized
 	}
 	if id, ok := c.Keys[JwtIdField]; ok {
-		if i, ok := id.(uint64); ok {
+		if i, ok := id.(int64); ok {
 			return i, nil
 		}
 		return 0, utils.ErrorInternalError

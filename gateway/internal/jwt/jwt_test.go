@@ -23,12 +23,12 @@ func TestJwt(t *testing.T) {
 
 	id, name, err := jwt.Validate(token)
 	assert.Nil(t, err)
-	assert.Equal(t, uint64(1234567890), id)
+	assert.Equal(t, int64(1234567890), id)
 	assert.Equal(t, "the_username", name)
 
 	time.Sleep(duration)
 	id, name, err = jwt.Validate(token)
 	assert.NotNil(t, err)
-	assert.Equal(t, uint64(0), id)
+	assert.Equal(t, int64(0), id)
 	assert.Equal(t, "", name)
 }

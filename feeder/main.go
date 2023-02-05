@@ -1,6 +1,7 @@
 package main
 
 import (
+	"feeder/internal/cql"
 	"feeder/internal/db"
 	"feeder/kitex_gen/douyin/rpc/feedservice"
 	"log"
@@ -14,6 +15,10 @@ import (
 func main() {
 	r, err := etcd.NewEtcdRegistry([]string{"127.0.0.1:2379"}) // r should not be reused.
 	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if err := cql.Init("127.0.0.1"); err != nil {
 		log.Fatalln(err)
 	}
 

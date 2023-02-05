@@ -2,6 +2,7 @@ package db
 
 import (
 	"common/snowy"
+	"common/utils"
 	"time"
 
 	"github.com/godruoyi/go-snowflake"
@@ -15,37 +16,37 @@ type VideoDO struct {
 	Title    string
 }
 
-func InsertVideo(video VideoDO) (int64, error) {
+func InsertVideo(video VideoDO) (int64, utils.ErrorCode) {
 	video.Id = int64(snowflake.ID())
 	if err := db.Create(&video).Error; err != nil {
-		return 0, err
+		return 0, utils.ErrorDatabaseError
 	}
-	return video.Id, nil
+	return video.Id, utils.ErrorOk
 }
 
-func ListVideos(author int64, limit int) ([]VideoDO, error) {
+func ListVideos(author int64, limit int) ([]VideoDO, utils.ErrorCode) {
 	var videos []VideoDO
 	if err := db.Where("author", author).
 		Order("id DESC").Limit(limit).
 		Find(&videos).Error; err != nil {
-		return nil, err
+		return nil, utils.ErrorDatabaseError
 	}
-	return videos, nil
+	return videos, utils.ErrorOk
 }
 
-func ListLatest(latest time.Time, limit int) ([]VideoDO, error) {
+func ListLatest(latest time.Time, limit int) ([]VideoDO, utils.ErrorCode) {
 	var videos []VideoDO
 	if err := db.Where("id < ?", snowy.FromLowerTime(latest)).Order("id DESC").Limit(limit).
 		Find(&videos).Error; err != nil {
-		return nil, err
+		return nil, utils.ErrorDatabaseError
 	}
-	return videos, nil
+	return videos, utils.ErrorOk
 }
 
-func FindVideos(ids []int64) ([]VideoDO, error) {
+func FindVideos(ids []int64) ([]VideoDO, utils.ErrorCode) {
 	videos := make([]VideoDO, 0, len(ids))
 	if err := db.Find(&videos, ids).Error; err != nil {
-		return nil, err
+		return nil, utils.ErrorDatabaseError
 	}
-	return videos, nil
+	return videos, utils.ErrorOk
 }

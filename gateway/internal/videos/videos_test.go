@@ -20,6 +20,8 @@ import (
 const gnu_video = "https://static.fsf.org/nosvn/videos/escape-to-freedom/videos/escape-to-freedom-360p.mp4"
 const filename = "escape-to-freedom-360p.mp4"
 
+var dir = path.Join(os.TempDir(), randName())
+
 var file string
 
 func TestMain(m *testing.M) {
@@ -41,6 +43,10 @@ func TestMain(m *testing.M) {
 		}
 	} else if stat.IsDir() {
 		log.Fatalf("%s is a directory", filename)
+	}
+
+	if err := videos.Init(dir, "http://localhost"); err != nil {
+		log.Fatalln(err)
 	}
 	m.Run()
 }
@@ -75,17 +81,16 @@ func randName() string {
 }
 
 func TestVideoSaving(t *testing.T) {
-	dir := path.Join(os.TempDir(), randName())
-	assert.Nil(t, videos.Init(dir))
-	file, err := videos.NewLocalVideo()
+	p, err := videos.NewLocalVideo()
 	assert.Nil(t, err)
-	assert.Contains(t, file, dir)
-
+	stat, err := os.Stat(videos.Storage(path.Dir(p)))
+	assert.Nil(t, err)
+	assert.True(t, stat.IsDir())
+	assert.Nil(t, err)
 	assert.Nil(t, os.RemoveAll(dir))
 }
 
 func TestValidation(t *testing.T) {
-	assert.Nil(t, videos.Init(os.TempDir()))
 	assert.Nil(t, videos.ValidateVideo(file))
 
 	invalid := path.Join(os.TempDir(), randName()+"invalid.mp4")
@@ -95,7 +100,6 @@ func TestValidation(t *testing.T) {
 }
 
 func TestCoverGeneration(t *testing.T) {
-	assert.Nil(t, videos.Init(os.TempDir()))
 	cover := path.Join(os.TempDir(), randName()+"cover.png")
 	assert.Nil(t, videos.GenerateCover(file, cover))
 

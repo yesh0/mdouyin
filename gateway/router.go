@@ -4,6 +4,9 @@ package main
 
 import (
 	handler "gateway/biz/handler"
+	"gateway/internal/videos"
+
+	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
 
@@ -11,5 +14,11 @@ import (
 func customizedRegister(r *server.Hertz) {
 	r.GET("/ping", handler.Ping)
 
-	// your code ...
+	r.StaticFS("/media", &app.FS{
+		Root:            videos.Dir(),
+		AcceptByteRange: true,
+		PathRewrite: func(c *app.RequestContext) []byte {
+			return c.Path()[len("/media"):]
+		},
+	})
 }
