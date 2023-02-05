@@ -1,10 +1,10 @@
 package db
 
 import (
+	"common/snowy"
 	"common/utils"
 
 	"github.com/alexedwards/argon2id"
-	"github.com/godruoyi/go-snowflake"
 	"gorm.io/gorm"
 )
 
@@ -18,7 +18,7 @@ const (
 
 type UserDO struct {
 	gorm.Model
-	Id           uint64 `gorm:"<-:create;primaryKey;autoIncrement=false"`
+	Id           int64  `gorm:"<-:create;primaryKey;autoIncrement=false"`
 	Name         string `gorm:"<-:create;uniqueIndex"`
 	Nickname     string // Nickname
 	PasswordHash string // Password hash & salt & params (Argon2id)
@@ -40,7 +40,7 @@ func CreateUser(name string, password string) (*UserDO, error) {
 	}
 
 	user := UserDO{
-		Id:           snowflake.ID(),
+		Id:           snowy.ID(),
 		Name:         name,
 		Nickname:     "New User",
 		PasswordHash: hash,
@@ -70,7 +70,7 @@ func FindUserByName(name string, fields ...string) (*UserDO, error) {
 	return FindUserWith(&user, fields...)
 }
 
-func FindUserById(id uint64, fields ...string) (*UserDO, error) {
+func FindUserById(id int64, fields ...string) (*UserDO, error) {
 	user := UserDO{Id: id}
 	return FindUserWith(&user, fields...)
 }

@@ -96,7 +96,7 @@ func Info(ctx context.Context, c *app.RequestContext) {
 		utils.Error(c, err)
 		return
 	}
-	user, err := db.FindUserById(uint64(req.UserId))
+	user, err := db.FindUserById(req.UserId)
 	if err != nil {
 		utils.Error(c, err)
 		return

@@ -9,7 +9,6 @@ require (
 	github.com/apache/thrift v0.13.0
 	github.com/cloudwego/hertz v0.5.2
 	github.com/cloudwego/kitex v0.0.5
-	github.com/godruoyi/go-snowflake v0.0.2
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/h2non/filetype v1.1.3
 	github.com/hertz-contrib/logger/zap v0.0.0-20221227100845-46a8693d7847

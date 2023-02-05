@@ -6,6 +6,7 @@ require (
 	github.com/apache/thrift v0.17.0
 	github.com/cloudwego/hertz v0.5.2
 	github.com/cloudwego/kitex v0.4.4
+	github.com/godruoyi/go-snowflake v0.0.2
 )
 
 require (

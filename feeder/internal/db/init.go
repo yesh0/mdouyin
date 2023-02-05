@@ -22,5 +22,9 @@ func Init(dialector gorm.Dialector) error {
 		return err
 	}
 
+	if err := db.AutoMigrate(&VideoDO{}); err != nil {
+		return err
+	}
+
 	return nil
 }

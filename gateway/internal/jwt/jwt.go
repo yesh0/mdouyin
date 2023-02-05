@@ -41,9 +41,9 @@ func Init(secret string, timeSpan time.Duration) error {
 	return nil
 }
 
-func NewAuthorization(id uint64, name string) (string, error) {
+func NewAuthorization(id int64, name string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-		JwtIdField:   strconv.FormatUint(id, 16),
+		JwtIdField:   strconv.FormatUint(uint64(id), 16),
 		JwtNameField: name,
 		JwtTimeField: strconv.FormatInt(time.Now().Unix(), 16),
 	})
