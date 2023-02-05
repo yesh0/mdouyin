@@ -1,6 +1,7 @@
 package main
 
 import (
+	"common/snowy"
 	"feeder/internal/cql"
 	"feeder/internal/db"
 	"feeder/kitex_gen/douyin/rpc/feedservice"
@@ -23,6 +24,10 @@ func main() {
 	}
 
 	if err := db.Init(sqlite.Open("file::memory:?cache=shared")); err != nil {
+		log.Fatalln(err)
+	}
+
+	if err := snowy.Init("127.0.0.1:2379"); err != nil {
 		log.Fatalln(err)
 	}
 

@@ -3,6 +3,7 @@
 package main
 
 import (
+	"common/snowy"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -113,6 +114,10 @@ func initialize(ctx *cli.Context) error {
 	}
 
 	if err := services.Init(); err != nil {
+		return err
+	}
+
+	if err := snowy.Init("127.0.0.1:2379"); err != nil {
 		return err
 	}
 
