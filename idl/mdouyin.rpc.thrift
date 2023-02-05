@@ -1,5 +1,7 @@
 namespace go douyin.rpc
 
+// When generating services, remember to move the corresponding `***Service` to the bottom.
+// Kitex only recognizes the LAST service.
 
 service ReactionService {
     DouyinFavoriteActionResponse Favorite (1: DouyinFavoriteActionRequest Req) (api.post="/douyin/favorite/action/")

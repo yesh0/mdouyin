@@ -1,5 +1,8 @@
 go 1.19
 
-use ./common
-use ./feeder
-use ./gateway
+use (
+  ./common
+	./feeder
+	./gateway
+	./reaction
+)
