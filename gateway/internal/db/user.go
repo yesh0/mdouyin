@@ -42,7 +42,7 @@ func CreateUser(name string, password string) (*UserDO, error) {
 	user := UserDO{
 		Id:           snowy.ID(),
 		Name:         name,
-		Nickname:     "New User",
+		Nickname:     name,
 		PasswordHash: hash,
 	}
 

@@ -49,7 +49,7 @@ func Relation(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	r, err := serivces.Feed.Relation(context.Background(), &rpc.DouyinRelationActionRequest{
+	r, err := serivces.Feed.Relation(ctx, &rpc.DouyinRelationActionRequest{
 		RequestUserId: int64(user),
 		ToUserId:      req.ToUserId,
 		ActionType:    req.ActionType,
@@ -84,7 +84,7 @@ func Following(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	r, err := serivces.Feed.Following(context.Background(), &rpc.DouyinRelationFollowListRequest{
+	r, err := serivces.Feed.Following(ctx, &rpc.DouyinRelationFollowListRequest{
 		UserId:        req.UserId,
 		RequestUserId: int64(user),
 	})
@@ -126,7 +126,7 @@ func Follower(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	r, err := serivces.Feed.Follower(context.Background(), &rpc.DouyinRelationFollowerListRequest{
+	r, err := serivces.Feed.Follower(ctx, &rpc.DouyinRelationFollowerListRequest{
 		UserId:        req.UserId,
 		RequestUserId: int64(user),
 	})

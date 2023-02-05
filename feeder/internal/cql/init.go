@@ -10,7 +10,7 @@ var script = []string{
 	CREATE TABLE IF NOT EXISTS feed.inbox (
 		user BIGINT,
 		item BIGINT,
-		PRIMARY KEY ((user), user, item),
+		PRIMARY KEY ((user), item),
 	)`,
 }
 

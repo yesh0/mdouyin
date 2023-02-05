@@ -117,3 +117,13 @@ func FriendList(user int64) ([]int64, utils.ErrorCode) {
 	}
 	return friends, utils.ErrorOk
 }
+
+func FilterFollowees(user int64, ids []int64) (followees []int64, err utils.ErrorCode) {
+	if e := db.Model(&RelationDO{}).Select("followee").
+		Where("follower = ? AND followee IN ?", user, ids).
+		Find(&followees).Error; e != nil {
+		err = utils.ErrorDatabaseError
+		followees = nil
+	}
+	return
+}

@@ -10,6 +10,7 @@ import (
 	"path"
 
 	core "gateway/biz/model/douyin/core"
+	"gateway/internal/db"
 	"gateway/internal/jwt"
 	"gateway/internal/services"
 	"gateway/internal/videos"
@@ -58,18 +59,45 @@ func Feed(ctx context.Context, c *app.RequestContext) {
 	c.JSON(consts.StatusOK, resp)
 }
 
-func generateVideoList(info []*rpc.VideoInfo) (vs []*core.Video, err error) {
+func generateVideoList(info []*rpc.Video) (vs []*core.Video, err error) {
 	vs = make([]*core.Video, 0, len(info))
+
+	authorIds := make([]int64, 0)
+	authors := make(map[int64]*core.User)
+	unknown := fromUser(&db.UserDO{
+		Id:   0,
+		Name: "Suspended User",
+	})
+	unknownFollowed := fromUser(&db.UserDO{
+		Id:   0,
+		Name: "Suspended User",
+	})
+	unknownFollowed.IsFollow = true
+	for _, v := range info {
+		if _, ok := authors[v.Author.Id]; ok {
+			continue
+		}
+		if v.Author.IsFollow {
+			authors[v.Author.Id] = unknownFollowed
+		} else {
+			authors[v.Author.Id] = unknown
+		}
+		authorIds = append(authorIds, v.Author.Id)
+	}
+	authorLookups, err := db.FindUsersByIds(authorIds)
+	for _, v := range authorLookups {
+		followed := authors[v.Id].IsFollow
+		authors[v.Id] = fromUser(&v)
+		if followed {
+			authors[v.Id].IsFollow = true
+		}
+	}
+
 	for _, video := range info {
-		// TODO: Fetch video info
 		// TODO: Fetch counts
 		vs = append(vs, &core.Video{
-			Id: video.Id,
-			Author: &core.User{
-				Id:     video.Author,
-				Name:   "",
-				Avatar: "",
-			},
+			Id:       video.Id,
+			Author:   authors[video.Author.Id],
 			PlayUrl:  videos.BaseUrl() + path.Join("/media", video.PlayUrl),
 			CoverUrl: videos.BaseUrl() + path.Join("/media", video.CoverUrl),
 			Title:    video.Title,
@@ -151,10 +179,10 @@ func Publish(ctx context.Context, c *app.RequestContext) {
 			return
 		}
 
-		r, err := services.Feed.Publish(context.Background(), &rpc.DouyinPublishActionRequest{
+		r, err := services.Feed.Publish(ctx, &rpc.DouyinPublishActionRequest{
 			RequestUserId: id,
-			Video: &rpc.VideoInfo{
-				Author:   id,
+			Video: &rpc.Video{
+				Author:   &rpc.User{Id: id},
 				PlayUrl:  relPath,
 				CoverUrl: cover,
 				Title:    title,

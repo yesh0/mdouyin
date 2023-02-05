@@ -34,16 +34,6 @@ struct Video {
     7: bool IsFavorite (api.body="is_favorite", api.query="is_favorite", api.form="is_favorite") // true-已点赞，false-未点赞
     8: string Title (api.body="title", api.query="title", api.form="title") // 视频标题
 }
-struct VideoInfo {
-    1: i64 Id (api.body="id", api.query="id", api.form="id") // 视频唯一标识
-    2: i64 Author (api.body="author", api.query="author", api.form="author") // 视频作者信息
-    3: string PlayUrl (api.body="play_url", api.query="play_url", api.form="play_url") // 视频播放地址
-    4: string CoverUrl (api.body="cover_url", api.query="cover_url", api.form="cover_url") // 视频封面地址
-    5: i64 FavoriteCount (api.body="favorite_count", api.query="favorite_count", api.form="favorite_count") // 视频的点赞总数
-    6: i64 CommentCount (api.body="comment_count", api.query="comment_count", api.form="comment_count") // 视频的评论总数
-    7: bool IsFavorite (api.body="is_favorite", api.query="is_favorite", api.form="is_favorite") // true-已点赞，false-未点赞
-    8: string Title (api.body="title", api.query="title", api.form="title") // 视频标题
-}
 struct User {
     1: i64 Id (api.body="id", api.query="id", api.form="id") // 用户id
     2: string Name (api.body="name", api.query="name", api.form="name") // 用户名称
@@ -68,7 +58,7 @@ struct DouyinFeedRequest {
 struct DouyinFeedResponse {
     1: i32 StatusCode (api.body="status_code", api.query="status_code", api.form="status_code") // 状态码，0-成功，其他值-失败
     2: optional string StatusMsg (api.body="status_msg", api.query="status_msg", api.form="status_msg") // 返回状态描述
-    3: list<VideoInfo> VideoList (api.body="video_list", api.query="video_list", api.form="video_list") // 视频列表
+    3: list<Video> VideoList (api.body="video_list", api.query="video_list", api.form="video_list") // 视频列表
     4: optional i64 NextTime (api.body="next_time", api.query="next_time", api.form="next_time") // 本次返回的视频中，发布最早的时间，作为下次请求时的latest_time
 }
 struct DouyinPublishActionRequest {
@@ -76,7 +66,7 @@ struct DouyinPublishActionRequest {
     // 2: binary Data (api.body="data", api.query="data", api.form="data") // 视频数据
     // 3: string Title (api.body="title", api.query="title", api.form="title") // 视频标题
     1: i64 RequestUserId (api.body="token", api.query="token", api.form="token") // 用户id
-    2: VideoInfo Video (api.body="token", api.query="token", api.form="token") // 视频信息
+    2: Video Video (api.body="token", api.query="token", api.form="token") // 视频信息
 }
 struct DouyinPublishActionResponse {
     1: i32 StatusCode (api.body="status_code", api.query="status_code", api.form="status_code") // 状态码，0-成功，其他值-失败
@@ -90,7 +80,7 @@ struct DouyinPublishListRequest {
 struct DouyinPublishListResponse {
     1: i32 StatusCode (api.body="status_code", api.query="status_code", api.form="status_code") // 状态码，0-成功，其他值-失败
     2: optional string StatusMsg (api.body="status_msg", api.query="status_msg", api.form="status_msg") // 返回状态描述
-    3: list<VideoInfo> VideoList (api.body="video_list", api.query="video_list", api.form="video_list") // 用户发布的视频列表
+    3: list<Video> VideoList (api.body="video_list", api.query="video_list", api.form="video_list") // 用户发布的视频列表
 }
 struct DouyinFavoriteActionRequest {
     // 1: string Token (api.body="token", api.query="token", api.form="token") // 用户鉴权token

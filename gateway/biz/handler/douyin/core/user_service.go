@@ -104,14 +104,18 @@ func Info(ctx context.Context, c *app.RequestContext) {
 
 	// TODO: RPC call to fetch follower counts
 	resp := &core.DouyinUserResponse{
-		User: &core.User{
-			Id:       int64(user.Id),
-			Name:     user.Name,
-			IsFollow: false,
-			Avatar: fmt.Sprintf("https://cravatar.cn/avatar/%x",
-				md5.Sum([]byte(strings.ToLower(user.Name)))),
-		},
+		User: fromUser(user),
 	}
 
 	c.JSON(consts.StatusOK, resp)
+}
+
+func fromUser(u *db.UserDO) *core.User {
+	return &core.User{
+		Id:       int64(u.Id),
+		Name:     u.Nickname,
+		IsFollow: false,
+		Avatar: fmt.Sprintf("https://cravatar.cn/avatar/%x",
+			md5.Sum([]byte(strings.ToLower(u.Name)))),
+	}
 }

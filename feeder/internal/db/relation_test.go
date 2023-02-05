@@ -16,6 +16,18 @@ func TestMutualFollow(t *testing.T) {
 			assert.Equal(t, utils.ErrorOk, db.Follow(int64(j), int64(i)))
 		}
 	}
+
+	l := make([]int64, 0, 60)
+	for i := userCount - 30; i < userCount+30; i++ {
+		l = append(l, int64(i))
+	}
+	followees, err := db.FilterFollowees(10, l)
+	assert.Equal(t, utils.ErrorOk, err)
+	assert.Len(t, followees, 30)
+	for _, id := range followees {
+		assert.True(t, int64(userCount-30) <= id && id < int64(userCount))
+	}
+
 	max := userCount - 1
 	if max > 300 {
 		max = 300
@@ -86,6 +98,12 @@ func TestMutualRelation(t *testing.T) {
 	assertRelation(t, 0xf0000, 0xf0001, true, false)
 	assert.Equal(t, utils.ErrorOk, db.Follow(0xf0001, 0xf0000))
 	assertRelation(t, 0xf0000, 0xf0001, true, true)
+
+	list, err := db.FilterFollowees(0xf0000, []int64{1, 2, 3, 4, 5, 6, 0xf0001, 0xf00000, 0xf1234567})
+	assert.Equal(t, utils.ErrorOk, err)
+	assert.Len(t, list, 1)
+	assert.Equal(t, int64(0xf0001), list[0])
+
 	assert.Equal(t, utils.ErrorOk, db.Unfollow(0xf0000, 0xf0001))
 	assertRelation(t, 0xf0001, 0xf0000, true, false)
 	assert.Equal(t, utils.ErrorOk, db.Unfollow(0xf0001, 0xf0000))
