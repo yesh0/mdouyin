@@ -3,8 +3,8 @@
 package counterservice
 
 import (
+	rpc "common/kitex_gen/douyin/rpc"
 	"context"
-	rpc "counter/kitex_gen/douyin/rpc"
 	client "github.com/cloudwego/kitex/client"
 	kitex "github.com/cloudwego/kitex/pkg/serviceinfo"
 )

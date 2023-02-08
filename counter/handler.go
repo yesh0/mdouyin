@@ -1,9 +1,9 @@
 package main
 
 import (
+	"common/kitex_gen/douyin/rpc"
 	"context"
 	"counter/db"
-	rpc "counter/kitex_gen/douyin/rpc"
 	"log"
 )
 

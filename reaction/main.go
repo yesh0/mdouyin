@@ -1,12 +1,12 @@
 package main
 
 import (
+	"common/kitex_gen/douyin/rpc/reactionservice"
 	"log"
-	rpc "reaction/kitex_gen/douyin/rpc/reactionservice"
 )
 
 func main() {
-	svr := rpc.NewServer(new(ReactionServiceImpl))
+	svr := reactionservice.NewServer(new(ReactionServiceImpl))
 
 	err := svr.Run()
 

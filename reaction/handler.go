@@ -1,8 +1,8 @@
 package main
 
 import (
+	"common/kitex_gen/douyin/rpc"
 	"context"
-	rpc "reaction/kitex_gen/douyin/rpc"
 )
 
 // ReactionServiceImpl implements the last service interface defined in the IDL.

@@ -3,7 +3,6 @@ module feeder
 go 1.19
 
 require (
-	github.com/apache/thrift v0.17.0
 	github.com/cloudwego/kitex v0.4.4
 	github.com/gocql/gocql v1.3.1
 	github.com/godruoyi/go-snowflake v0.0.2
@@ -14,6 +13,7 @@ require (
 )
 
 require (
+	github.com/apache/thrift v0.17.0 // indirect
 	github.com/bytedance/gopkg v0.0.0-20220531084716-665b4f21126f // indirect
 	github.com/chenzhuoyu/iasm v0.0.0-20220818063314-28c361dae733 // indirect
 	github.com/choleraehyq/pid v0.0.15 // indirect

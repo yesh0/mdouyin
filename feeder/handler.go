@@ -1,12 +1,12 @@
 package main
 
 import (
+	"common/kitex_gen/douyin/rpc"
 	"common/snowy"
 	"common/utils"
 	"context"
 	"feeder/internal/cql"
 	"feeder/internal/db"
-	"feeder/kitex_gen/douyin/rpc"
 	"time"
 )
 

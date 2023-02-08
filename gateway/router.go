@@ -3,7 +3,7 @@
 package main
 
 import (
-	handler "gateway/biz/handler"
+	"gateway/biz/handler"
 	"gateway/internal/videos"
 
 	"github.com/cloudwego/hertz/pkg/app"

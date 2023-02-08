@@ -1,10 +1,10 @@
 package main
 
 import (
+	"common/kitex_gen/douyin/rpc/feedservice"
 	"common/snowy"
 	"feeder/internal/cql"
 	"feeder/internal/db"
-	"feeder/kitex_gen/douyin/rpc/feedservice"
 	"log"
 
 	"github.com/cloudwego/kitex/pkg/rpcinfo"
