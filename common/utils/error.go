@@ -415,7 +415,7 @@ func withBodyJson(c *app.RequestContext, code ErrorCode, message string) {
 	c.Abort()
 	c.SetStatusCode(consts.StatusOK)
 	c.SetContentType("application/json; charset=utf-8")
-	body := fmt.Sprintf(`{"status_code":0x%x,"status_msg":"%s"}`, uint32(code), message)
+	body := fmt.Sprintf(`{"status_code":%d,"status_msg":"%s"}`, code, message)
 	c.Response.AppendBodyString(body)
 }
 
