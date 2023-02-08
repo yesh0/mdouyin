@@ -212,6 +212,11 @@ func List(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
+	if !db.UserExists(req.UserId) {
+		utils.ErrorNoSuchUser.Write(c)
+		return
+	}
+
 	r, err := services.Feed.List(ctx, &rpc.DouyinPublishListRequest{
 		UserId:        req.UserId,
 		RequestUserId: 0,

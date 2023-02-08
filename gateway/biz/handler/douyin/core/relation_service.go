@@ -49,6 +49,11 @@ func Relation(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
+	if !db.UserExists(req.ToUserId) {
+		utils.ErrorNoSuchUser.Write(c)
+		return
+	}
+
 	r, err := serivces.Feed.Relation(ctx, &rpc.DouyinRelationActionRequest{
 		RequestUserId: int64(user),
 		ToUserId:      req.ToUserId,

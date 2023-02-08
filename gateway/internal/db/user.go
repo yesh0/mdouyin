@@ -87,6 +87,10 @@ func FindUsersByIds(ids []int64) (users []UserDO, err error) {
 	return
 }
 
+func UserExists(id int64) bool {
+	return db.Limit(1).Find(&UserDO{Id: id}).RowsAffected == 1
+}
+
 func (u *UserDO) VerifyPassword(password string) error {
 	match, err := argon2id.ComparePasswordAndHash(password, u.PasswordHash)
 	if err != nil {
