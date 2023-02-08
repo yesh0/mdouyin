@@ -12,11 +12,9 @@ import (
 )
 
 func rootMw() []app.HandlerFunc {
-	// your code...
 	return []app.HandlerFunc{
 		// Logger
 		func(ctx context.Context, c *app.RequestContext) {
-			hlog.Trace(c.Request.Header.String())
 			c.Next(ctx)
 			hlog.Trace(c.Response.StatusCode(), c.Request.URI())
 		},

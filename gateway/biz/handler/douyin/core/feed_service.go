@@ -38,7 +38,7 @@ func Feed(ctx context.Context, c *app.RequestContext) {
 
 	r, err := services.Feed.Feed(ctx, &rpc.DouyinFeedRequest{
 		LatestTime:    req.LatestTime,
-		RequestUserId: int64(id),
+		RequestUserId: id,
 	})
 	if err != nil {
 		utils.ErrorRpcTimeout.Write(c)

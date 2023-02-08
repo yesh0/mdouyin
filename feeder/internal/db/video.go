@@ -44,8 +44,13 @@ func ListLatest(latest time.Time, limit int) ([]VideoDO, utils.ErrorCode) {
 }
 
 func FindVideos(ids []int64) ([]VideoDO, utils.ErrorCode) {
+	if len(ids) == 0 {
+		// db.Find with an empty slice ends up a full table scan.
+		return []VideoDO{}, utils.ErrorOk
+	}
+
 	videos := make([]VideoDO, 0, len(ids))
-	if err := db.Find(&videos, ids).Error; err != nil {
+	if err := db.Limit(len(ids)).Find(&videos, ids).Error; err != nil {
 		return nil, utils.ErrorDatabaseError
 	}
 	return videos, utils.ErrorOk

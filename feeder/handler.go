@@ -19,7 +19,7 @@ func (s *FeedServiceImpl) Feed(ctx context.Context, req *rpc.DouyinFeedRequest) 
 	var videos []db.VideoDO
 	var err utils.ErrorCode
 	var latest time.Time
-	if req.LatestTime == nil {
+	if req.LatestTime == nil || *req.LatestTime == 0 {
 		latest = time.Now()
 	} else {
 		latest = time.UnixMilli(*req.LatestTime)

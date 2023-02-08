@@ -50,4 +50,8 @@ func TestVideoListing(t *testing.T) {
 	assert.Len(t, videos, 2)
 	assert.Equal(t, id1, videos[0].Id)
 	assert.Equal(t, id2, videos[1].Id)
+
+	videos, err = db.FindVideos([]int64{})
+	assert.Equal(t, utils.ErrorOk, err)
+	assert.Len(t, videos, 0)
 }

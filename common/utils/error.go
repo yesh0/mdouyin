@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"fmt"
+
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
@@ -405,18 +407,21 @@ func Error(c *app.RequestContext, err error) {
 		e.Write(c)
 	default:
 		hlog.Warn("unrecognized error", err)
-		c.SetContentType("application/json")
-		c.String(
-			consts.StatusOK, `{"status_code":0x%x,"status_msg":"%s"}`,
-			uint32(ErrorInternalError), err.Error(),
-		)
+		withBodyJson(c, ErrorInternalError, err.Error())
 	}
+}
+
+func withBodyJson(c *app.RequestContext, code ErrorCode, message string) {
+	c.Abort()
+	c.SetStatusCode(consts.StatusOK)
+	c.SetContentType("application/json; charset=utf-8")
+	body := fmt.Sprintf(`{"status_code":0x%x,"status_msg":"%s"}`, uint32(code), message)
+	c.Response.AppendBodyString(body)
 }
 
 func (code ErrorCode) Write(c *app.RequestContext) {
 	if message, ok := messages[code]; ok {
-		c.SetContentType("application/json")
-		c.String(consts.StatusOK, `{"status_code":0x%x,"status_msg":"%s"}`, uint32(code), message)
+		withBodyJson(c, code, message)
 	} else {
 		hlog.Error("unrecognized error code", code)
 		ErrorInternalError.Write(c)
@@ -435,11 +440,7 @@ func (code ErrorCode) With(message string) ErrorWithMessage {
 }
 
 func (err ErrorWithMessage) Write(c *app.RequestContext) {
-	c.SetContentType("application/json")
-	c.String(
-		consts.StatusOK, `{"status_code":0x%x,"status_msg":"%s"}`,
-		uint32(err.Code), err.Message,
-	)
+	withBodyJson(c, err.Code, err.Message)
 }
 
 func (code ErrorCode) Error() string {
