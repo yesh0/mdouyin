@@ -3,6 +3,8 @@
 package core
 
 import (
+	"common"
+	"common/kitex_gen/douyin/rpc"
 	"common/utils"
 	"context"
 	"crypto/md5"
@@ -12,6 +14,7 @@ import (
 	core "gateway/biz/model/douyin/core"
 	"gateway/internal/db"
 	"gateway/internal/jwt"
+	"gateway/internal/services"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
@@ -102,20 +105,45 @@ func Info(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	// TODO: RPC call to fetch follower counts
+	counts, err := services.Counter.Fetch(ctx, &rpc.CounterGetRequest{
+		Id:    []int64{user.Id},
+		Kinds: []int8{common.KindUserFollowerCount, common.KindUserFollowingCount},
+	})
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
+
 	resp := &core.DouyinUserResponse{
-		User: fromUser(user),
+		User: fromUser(user, counts.Counters, false),
 	}
 
 	c.JSON(consts.StatusOK, resp)
 }
 
-func fromUser(u *db.UserDO) *core.User {
-	return &core.User{
+func fromUser(u *db.UserDO, counts []*rpc.Counts, followed bool) (user *core.User) {
+	var followers int64
+	var following int64
+	user = &core.User{
 		Id:       int64(u.Id),
 		Name:     u.Nickname,
-		IsFollow: false,
+		IsFollow: followed,
 		Avatar: fmt.Sprintf("https://cravatar.cn/avatar/%x",
 			md5.Sum([]byte(strings.ToLower(u.Name)))),
 	}
+	for _, c := range counts {
+		if c.Id == u.Id {
+			for _, kind := range c.KindCounts {
+				switch kind.Kind {
+				case common.KindUserFollowerCount:
+					followers = int64(kind.Count)
+					user.FollowerCount = &followers
+				case common.KindUserFollowingCount:
+					following = int64(kind.Count)
+					user.FollowCount = &following
+				}
+			}
+		}
+	}
+	return
 }

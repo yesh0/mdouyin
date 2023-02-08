@@ -1,12 +1,14 @@
 package main
 
 import (
+	"common"
 	"common/kitex_gen/douyin/rpc"
 	"common/snowy"
 	"common/utils"
 	"context"
 	"feeder/internal/cql"
 	"feeder/internal/db"
+	"feeder/internal/services"
 	"time"
 )
 
@@ -146,10 +148,22 @@ func (s *FeedServiceImpl) Relation(ctx context.Context, req *rpc.DouyinRelationA
 	case 1: // Follow
 		if err := db.Follow(req.RequestUserId, req.ToUserId); err != utils.ErrorOk {
 			resp.StatusCode = int32(err)
+		} else {
+			_, err := services.Counter.Increment(ctx,
+				common.NewIncrement(req.RequestUserId, req.ToUserId, false))
+			if err != nil {
+				resp.StatusCode = int32(utils.ErrorRpcTimeout)
+			}
 		}
 	case 2: // Unfollow
 		if err := db.Unfollow(req.RequestUserId, req.ToUserId); err != utils.ErrorOk {
 			resp.StatusCode = int32(err)
+		} else {
+			_, err := services.Counter.Increment(ctx,
+				common.NewIncrement(req.RequestUserId, req.ToUserId, true))
+			if err != nil {
+				resp.StatusCode = int32(utils.ErrorRpcTimeout)
+			}
 		}
 	default:
 		resp.StatusCode = int32(utils.ErrorWrongInputFormat)

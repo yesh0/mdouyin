@@ -67,11 +67,11 @@ func generateVideoList(info []*rpc.Video) (vs []*core.Video, err error) {
 	unknown := fromUser(&db.UserDO{
 		Id:   0,
 		Name: "Suspended User",
-	})
+	}, nil, false)
 	unknownFollowed := fromUser(&db.UserDO{
 		Id:   0,
 		Name: "Suspended User",
-	})
+	}, nil, false)
 	unknownFollowed.IsFollow = true
 	for _, v := range info {
 		if _, ok := authors[v.Author.Id]; ok {
@@ -86,11 +86,7 @@ func generateVideoList(info []*rpc.Video) (vs []*core.Video, err error) {
 	}
 	authorLookups, err := db.FindUsersByIds(authorIds)
 	for _, v := range authorLookups {
-		followed := authors[v.Id].IsFollow
-		authors[v.Id] = fromUser(&v)
-		if followed {
-			authors[v.Id].IsFollow = true
-		}
+		authors[v.Id] = fromUser(&v, nil, authors[v.Id].IsFollow)
 	}
 
 	for _, video := range info {
