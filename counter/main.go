@@ -2,22 +2,25 @@ package main
 
 import (
 	"common/kitex_gen/douyin/rpc/counterservice"
+	"common/utils"
 	"counter/db"
-	"log"
 
+	"github.com/cloudwego/kitex/pkg/klog"
 	"gorm.io/driver/sqlite"
 )
 
 func main() {
+	utils.InitKlog()
+
 	svr := counterservice.NewServer(new(CounterServiceImpl))
 
 	if err := db.Init(sqlite.Open("file::memory:?cache=shared")); err != nil {
-		log.Fatalln(err)
+		klog.Fatal(err)
 	}
 
 	err := svr.Run()
 
 	if err != nil {
-		log.Println(err.Error())
+		klog.Fatal(err.Error())
 	}
 }

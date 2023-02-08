@@ -4,6 +4,7 @@ package main
 
 import (
 	"common/snowy"
+	"common/utils"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -18,7 +19,6 @@ import (
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/hertz-contrib/logger/zap"
 	"github.com/urfave/cli/v2"
-	"go.uber.org/zap/zapcore"
 )
 
 const (
@@ -125,16 +125,7 @@ func initialize(ctx *cli.Context) error {
 }
 
 func getLogger() *zap.Logger {
-	logger := zap.NewLogger(zap.WithCoreEnc(zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
-		LevelKey:      "level",
-		TimeKey:       "ts",
-		MessageKey:    "msg",
-		CallerKey:     "caller",
-		NameKey:       "logger",
-		StacktraceKey: "stacktrace",
-		EncodeLevel:   zapcore.CapitalColorLevelEncoder,
-		EncodeTime:    zapcore.TimeEncoderOfLayout("15:04:05 Mon"),
-	})))
+	logger := zap.NewLogger(zap.WithCoreEnc(utils.GetZapEncoder()))
 	logger.SetLevel(hlog.LevelTrace)
 	return logger
 }

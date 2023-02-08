@@ -12,11 +12,11 @@
 package db
 
 import (
-	"log"
 	"math"
 	"sync/atomic"
 	"time"
 
+	"github.com/cloudwego/kitex/pkg/klog"
 	"github.com/dgraph-io/ristretto"
 	"gorm.io/gorm"
 )
@@ -40,7 +40,7 @@ func Init(dialector gorm.Dialector) (err error) {
 		BufferItems: 64,
 		OnExit: func(val interface{}) {
 			if err := val.(*Counters).Exit(); err != nil {
-				log.Println(err)
+				klog.Error(err)
 			}
 		},
 	})

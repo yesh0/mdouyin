@@ -4,7 +4,8 @@ import (
 	"common/kitex_gen/douyin/rpc"
 	"context"
 	"counter/db"
-	"log"
+
+	"github.com/cloudwego/kitex/pkg/klog"
 )
 
 // CounterServiceImpl implements the last service interface defined in the IDL.
@@ -14,7 +15,7 @@ type CounterServiceImpl struct{}
 func (s *CounterServiceImpl) Increment(ctx context.Context, req *rpc.CounterIncRequest) (resp *rpc.CounterNopResponse, err error) {
 	for _, action := range req.Actions {
 		if err := db.Increment(action.Id, action.Kind, int32(action.Delta)); err != nil {
-			log.Println(err)
+			klog.Error(err)
 		}
 	}
 	resp = rpc.NewCounterNopResponse()
@@ -28,7 +29,7 @@ func (s *CounterServiceImpl) Fetch(ctx context.Context, req *rpc.CounterGetReque
 	for _, id := range req.Id {
 		counts := make([]*rpc.KindCount, 0, len(req.Kinds))
 		if count, err := db.Get(id); err != nil {
-			log.Println(err)
+			klog.Error(err)
 		} else {
 			for _, kind := range req.Kinds {
 				counts = append(counts, &rpc.KindCount{

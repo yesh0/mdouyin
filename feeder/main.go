@@ -3,10 +3,11 @@ package main
 import (
 	"common/kitex_gen/douyin/rpc/feedservice"
 	"common/snowy"
+	"common/utils"
 	"feeder/internal/cql"
 	"feeder/internal/db"
-	"log"
 
+	"github.com/cloudwego/kitex/pkg/klog"
 	"github.com/cloudwego/kitex/pkg/rpcinfo"
 	"github.com/cloudwego/kitex/server"
 	etcd "github.com/kitex-contrib/registry-etcd"
@@ -14,21 +15,23 @@ import (
 )
 
 func main() {
+	utils.InitKlog()
+
 	r, err := etcd.NewEtcdRegistry([]string{"127.0.0.1:2379"}) // r should not be reused.
 	if err != nil {
-		log.Fatalln(err)
+		klog.Fatal(err)
 	}
 
 	if err := cql.Init("127.0.0.1"); err != nil {
-		log.Fatalln(err)
+		klog.Fatal(err)
 	}
 
 	if err := db.Init(sqlite.Open("file::memory:?cache=shared")); err != nil {
-		log.Fatalln(err)
+		klog.Fatal(err)
 	}
 
 	if err := snowy.Init("127.0.0.1:2379"); err != nil {
-		log.Fatalln(err)
+		klog.Fatal(err)
 	}
 
 	svr := feedservice.NewServer(
@@ -42,6 +45,6 @@ func main() {
 	err = svr.Run()
 
 	if err != nil {
-		log.Fatalln(err.Error())
+		klog.Fatal(err.Error())
 	}
 }
