@@ -28,7 +28,7 @@ func Follow(follower, followee int64) utils.ErrorCode {
 		}
 		mutual := tx.Limit(1).Find(&previous).RowsAffected == 1
 		if previous.Mutual {
-			return nil
+			return utils.ErrorUnanticipated
 		}
 
 		tx.Error = nil
@@ -65,8 +65,11 @@ func Unfollow(follower, followee int64) utils.ErrorCode {
 			Followee: followee,
 			Follower: follower,
 		}
-		if err := tx.Clauses(clause.Returning{Columns: []clause.Column{{Name: "mutual"}}}).
-			Delete(relation).Error; err != nil {
+		result := tx.Clauses(clause.Returning{Columns: []clause.Column{{Name: "mutual"}}}).Delete(relation)
+		if err := result.Error; err != nil {
+			return utils.ErrorUnanticipated
+		}
+		if result.RowsAffected == 0 {
 			return utils.ErrorUnanticipated
 		}
 

@@ -109,3 +109,7 @@ func TestMutualRelation(t *testing.T) {
 	assert.Equal(t, utils.ErrorOk, db.Unfollow(0xf0001, 0xf0000))
 	assertRelation(t, 0xf0001, 0xf0000, false, false)
 }
+
+func TestFailedUnfollow(t *testing.T) {
+	assert.Equal(t, utils.ErrorUnanticipated, db.Unfollow(400, 401))
+}
