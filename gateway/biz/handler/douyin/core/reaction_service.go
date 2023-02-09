@@ -3,9 +3,15 @@
 package core
 
 import (
+	"common/kitex_gen/douyin/rpc"
+	"common/utils"
 	"context"
 
 	core "gateway/biz/model/douyin/core"
+	"gateway/internal/db"
+	"gateway/internal/jwt"
+	"gateway/internal/services"
+
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 )
@@ -49,11 +55,45 @@ func Comment(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinCommentActionRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.InvalidInput(c, err)
+		return
+	}
+
+	id, err := jwt.AuthorizedUser(c)
+	if err != nil || id == 0 {
+		utils.Error(c, err)
+		return
+	}
+
+	r, err := services.Reaction.Comment(ctx, &rpc.DouyinCommentActionRequest{
+		RequestUserId: id,
+		VideoId:       req.VideoId,
+		ActionType:    req.ActionType,
+		CommentText:   req.CommentText,
+		CommentId:     req.CommentId,
+	})
+	if err != nil {
+		utils.ErrorRpcTimeout.Write(c)
+		return
+	}
+	if utils.RpcError(c, r.StatusCode) {
 		return
 	}
 
 	resp := new(core.DouyinCommentActionResponse)
+	if r.Comment != nil {
+		user, err := db.FindUserById(r.Comment.User.Id)
+		if err != nil {
+			utils.Error(c, err)
+			return
+		}
+		resp.Comment = &core.Comment{
+			Id:         r.Comment.Id,
+			User:       services.FromUser(user, nil, false),
+			Content:    r.Comment.Content,
+			CreateDate: r.Comment.CreateDate,
+		}
+	}
 
 	c.JSON(consts.StatusOK, resp)
 }
@@ -65,11 +105,49 @@ func ListComments(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinCommentListRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.InvalidInput(c, err)
+		return
+	}
+
+	user, err := jwt.AuthorizedUser(c)
+	if err != nil || user == 0 {
+		utils.ErrorUnauthorized.Write(c)
+		return
+	}
+
+	r, err := services.Reaction.ListComments(ctx, &rpc.DouyinCommentListRequest{
+		RequestUserId: user,
+		VideoId:       req.VideoId,
+	})
+	if err != nil {
+		utils.ErrorRpcTimeout.Write(c)
+		return
+	}
+	if utils.RpcError(c, r.StatusCode) {
+		return
+	}
+
+	rpcAuthors := make([]*rpc.User, 0, len(r.CommentList))
+	for _, comment := range r.CommentList {
+		rpcAuthors = append(rpcAuthors, comment.User)
+	}
+	authors, err := services.GatherUserInfo(ctx, user, rpcAuthors, true, true)
+	if err != nil {
+		utils.ErrorRpcTimeout.Write(c)
 		return
 	}
 
 	resp := new(core.DouyinCommentListResponse)
+	comments := make([]*core.Comment, 0, len(r.CommentList))
+	for _, comment := range r.CommentList {
+		comments = append(comments, &core.Comment{
+			Id:         comment.Id,
+			User:       authors[comment.User.Id],
+			Content:    comment.Content,
+			CreateDate: comment.CreateDate,
+		})
+	}
+	resp.CommentList = comments
 
 	c.JSON(consts.StatusOK, resp)
 }

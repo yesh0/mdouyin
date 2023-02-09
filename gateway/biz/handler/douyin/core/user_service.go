@@ -7,9 +7,6 @@ import (
 	"common/kitex_gen/douyin/rpc"
 	"common/utils"
 	"context"
-	"crypto/md5"
-	"fmt"
-	"strings"
 
 	core "gateway/biz/model/douyin/core"
 	"gateway/internal/db"
@@ -115,35 +112,8 @@ func Info(ctx context.Context, c *app.RequestContext) {
 	}
 
 	resp := &core.DouyinUserResponse{
-		User: fromUser(user, counts.Counters, false),
+		User: services.FromUser(user, counts.Counters, false),
 	}
 
 	c.JSON(consts.StatusOK, resp)
-}
-
-func fromUser(u *db.UserDO, counts []*rpc.Counts, followed bool) (user *core.User) {
-	var followers int64
-	var following int64
-	user = &core.User{
-		Id:       int64(u.Id),
-		Name:     u.Nickname,
-		IsFollow: followed,
-		Avatar: fmt.Sprintf("https://cravatar.cn/avatar/%x",
-			md5.Sum([]byte(strings.ToLower(u.Name)))),
-	}
-	for _, c := range counts {
-		if c.Id == u.Id {
-			for _, kind := range c.KindCounts {
-				switch kind.Kind {
-				case common.KindUserFollowerCount:
-					followers = int64(kind.Count)
-					user.FollowerCount = &followers
-				case common.KindUserFollowingCount:
-					following = int64(kind.Count)
-					user.FollowCount = &following
-				}
-			}
-		}
-	}
-	return
 }

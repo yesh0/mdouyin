@@ -5,7 +5,8 @@ import (
 	"common/kitex_gen/douyin/rpc/reactionservice"
 	"common/utils"
 	"log"
-	"reaction/cql"
+	"reaction/internal/cql"
+	"reaction/internal/services"
 
 	"github.com/cloudwego/kitex/pkg/klog"
 )
@@ -19,6 +20,10 @@ func main() {
 	)
 
 	if err := cql.Init("127.0.0.1"); err != nil {
+		klog.Fatal(err)
+	}
+
+	if err := services.Init(); err != nil {
 		klog.Fatal(err)
 	}
 

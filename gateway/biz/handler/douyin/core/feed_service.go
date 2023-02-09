@@ -62,31 +62,11 @@ func Feed(ctx context.Context, c *app.RequestContext) {
 func generateVideoList(info []*rpc.Video) (vs []*core.Video, err error) {
 	vs = make([]*core.Video, 0, len(info))
 
-	authorIds := make([]int64, 0)
-	authors := make(map[int64]*core.User)
-	unknown := fromUser(&db.UserDO{
-		Id:   0,
-		Name: "Suspended User",
-	}, nil, false)
-	unknownFollowed := fromUser(&db.UserDO{
-		Id:   0,
-		Name: "Suspended User",
-	}, nil, false)
-	unknownFollowed.IsFollow = true
-	for _, v := range info {
-		if _, ok := authors[v.Author.Id]; ok {
-			continue
-		}
-		if v.Author.IsFollow {
-			authors[v.Author.Id] = unknownFollowed
-		} else {
-			authors[v.Author.Id] = unknown
-		}
-		authorIds = append(authorIds, v.Author.Id)
-	}
-	authorLookups, err := db.FindUsersByIds(authorIds)
-	for _, v := range authorLookups {
-		authors[v.Id] = fromUser(&v, nil, authors[v.Id].IsFollow)
+	rpcAuthors := make([]*rpc.User, 0)
+	var authors map[int64]*core.User
+	authors, err = services.GatherUserInfo(context.Background(), 0, rpcAuthors, false, false)
+	if err != nil {
+		return
 	}
 
 	for _, video := range info {

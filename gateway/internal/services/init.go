@@ -4,11 +4,13 @@ import (
 	"common"
 	"common/kitex_gen/douyin/rpc/counterservice"
 	"common/kitex_gen/douyin/rpc/feedservice"
+	"common/kitex_gen/douyin/rpc/reactionservice"
 	"fmt"
 )
 
-var Feed feedservice.Client
 var Counter counterservice.Client
+var Feed feedservice.Client
+var Reaction reactionservice.Client
 
 func Init() (err error) {
 	Feed, err = feedservice.NewClient(string(common.FeederServiceName), common.WithEtcdResolver())
@@ -19,6 +21,11 @@ func Init() (err error) {
 	Counter, err = counterservice.NewClient(string(common.CounterServiceName), common.WithEtcdResolver())
 	if err != nil {
 		return fmt.Errorf("unable to create counter client: %s", err)
+	}
+
+	Reaction, err = reactionservice.NewClient(string(common.ReactionServiceName), common.WithEtcdResolver())
+	if err != nil {
+		return fmt.Errorf("unable to create reaction client: %s", err)
 	}
 
 	return nil

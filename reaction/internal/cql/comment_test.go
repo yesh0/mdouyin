@@ -4,7 +4,7 @@ import (
 	"common/utils"
 	"log"
 	"math/rand"
-	"reaction/cql"
+	"reaction/internal/cql"
 	"testing"
 	"time"
 

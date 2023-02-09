@@ -1,10 +1,12 @@
 package main
 
 import (
+	"common"
 	"common/kitex_gen/douyin/rpc"
 	"common/utils"
 	"context"
-	"reaction/cql"
+	"reaction/internal/cql"
+	"reaction/internal/services"
 	"time"
 )
 
@@ -34,13 +36,26 @@ func (s *ReactionServiceImpl) Comment(ctx context.Context, req *rpc.DouyinCommen
 		}
 		var code utils.ErrorCode
 		resp.Comment, code = cql.AddComment(req.VideoId, req.RequestUserId, *req.CommentText)
-		resp.StatusCode = int32(code)
+		if code != utils.ErrorOk {
+			resp.StatusCode = int32(code)
+			return
+		}
+		services.Counter.Increment(ctx, &rpc.CounterIncRequest{
+			Actions: []*rpc.Increment{
+				{
+					Id:    resp.Comment.Id,
+					Kind:  common.KindVideoCommentCount,
+					Delta: 1,
+				},
+			},
+		})
 	case 2: // Removes.
 		if req.CommentId == nil || *req.CommentId == 0 {
 			resp.StatusCode = int32(utils.ErrorWrongInputFormat)
 			return
 		}
 		resp.StatusCode = int32(cql.DeleteComment(req.VideoId, *req.CommentId, req.RequestUserId))
+		// We are not decrementing the counts. No.
 	}
 	return
 }
