@@ -13,7 +13,7 @@ import (
 // Sets etcd as the registry and selects a random to listen to.
 //
 // It panics when it cannot connect to an etcd registry.
-func WithEtcdOptions(name string) []server.Option {
+func WithEtcdOptions(name RpcServiceName) []server.Option {
 	r, err := etcd.NewEtcdRegistry([]string{"127.0.0.1:2379"})
 	if err != nil {
 		klog.Fatal(err)
@@ -22,7 +22,7 @@ func WithEtcdOptions(name string) []server.Option {
 	return []server.Option{
 		WithRandomPort(),
 		server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{
-			ServiceName: name,
+			ServiceName: string(name),
 		}),
 		server.WithRegistry(r),
 	}

@@ -2,9 +2,12 @@ package common
 
 import "common/kitex_gen/douyin/rpc"
 
+type RpcServiceName string
+
 const (
-	CounterServiceName = "counter"
-	FeederServiceName  = "feeder"
+	CounterServiceName  RpcServiceName = "counter"
+	FeederServiceName   RpcServiceName = "feeder"
+	ReactionServiceName RpcServiceName = "reaction"
 )
 
 const (
