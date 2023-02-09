@@ -18,6 +18,7 @@ type Client interface {
 	Following(ctx context.Context, req *rpc.DouyinRelationFollowListRequest, callOptions ...callopt.Option) (r *rpc.DouyinRelationFollowListResponse, err error)
 	Follower(ctx context.Context, req *rpc.DouyinRelationFollowerListRequest, callOptions ...callopt.Option) (r *rpc.DouyinRelationFollowerListResponse, err error)
 	Friend(ctx context.Context, req *rpc.DouyinRelationFriendListRequest, callOptions ...callopt.Option) (r *rpc.DouyinRelationFriendListResponse, err error)
+	VideoInfo(ctx context.Context, req *rpc.VideoBatchInfoRequest, callOptions ...callopt.Option) (r *rpc.VideoBatchInfoResponse, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -82,4 +83,9 @@ func (p *kFeedServiceClient) Follower(ctx context.Context, req *rpc.DouyinRelati
 func (p *kFeedServiceClient) Friend(ctx context.Context, req *rpc.DouyinRelationFriendListRequest, callOptions ...callopt.Option) (r *rpc.DouyinRelationFriendListResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.Friend(ctx, req)
+}
+
+func (p *kFeedServiceClient) VideoInfo(ctx context.Context, req *rpc.VideoBatchInfoRequest, callOptions ...callopt.Option) (r *rpc.VideoBatchInfoResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.VideoInfo(ctx, req)
 }

@@ -26,6 +26,7 @@ func NewServiceInfo() *kitex.ServiceInfo {
 		"Following": kitex.NewMethodInfo(followingHandler, newFeedServiceFollowingArgs, newFeedServiceFollowingResult, false),
 		"Follower":  kitex.NewMethodInfo(followerHandler, newFeedServiceFollowerArgs, newFeedServiceFollowerResult, false),
 		"Friend":    kitex.NewMethodInfo(friendHandler, newFeedServiceFriendArgs, newFeedServiceFriendResult, false),
+		"VideoInfo": kitex.NewMethodInfo(videoInfoHandler, newFeedServiceVideoInfoArgs, newFeedServiceVideoInfoResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "rpc",
@@ -167,6 +168,24 @@ func newFeedServiceFriendResult() interface{} {
 	return rpc.NewFeedServiceFriendResult()
 }
 
+func videoInfoHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*rpc.FeedServiceVideoInfoArgs)
+	realResult := result.(*rpc.FeedServiceVideoInfoResult)
+	success, err := handler.(rpc.FeedService).VideoInfo(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newFeedServiceVideoInfoArgs() interface{} {
+	return rpc.NewFeedServiceVideoInfoArgs()
+}
+
+func newFeedServiceVideoInfoResult() interface{} {
+	return rpc.NewFeedServiceVideoInfoResult()
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -242,6 +261,16 @@ func (p *kClient) Friend(ctx context.Context, req *rpc.DouyinRelationFriendListR
 	_args.Req = req
 	var _result rpc.FeedServiceFriendResult
 	if err = p.c.Call(ctx, "Friend", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) VideoInfo(ctx context.Context, req *rpc.VideoBatchInfoRequest) (r *rpc.VideoBatchInfoResponse, err error) {
+	var _args rpc.FeedServiceVideoInfoArgs
+	_args.Req = req
+	var _result rpc.FeedServiceVideoInfoResult
+	if err = p.c.Call(ctx, "VideoInfo", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

@@ -10,9 +10,18 @@ service FeedService {
     DouyinRelationFollowListResponse Following (1: DouyinRelationFollowListRequest Req) (api.get="/douyin/relation/follow/list/")
     DouyinRelationFollowerListResponse Follower (1: DouyinRelationFollowerListRequest Req) (api.get="/douyin/relation/follower/list/")
     DouyinRelationFriendListResponse Friend (1: DouyinRelationFriendListRequest Req) (api.get="/douyin/relation/friend/list/")
+
+    VideoBatchInfoResponse VideoInfo (1: VideoBatchInfoRequest Req)
 }
 
 
+struct VideoBatchInfoRequest {
+    1: list<i64> VideoIds // 视频id
+    2: i64 RequestUserId  // 用户id
+}
+struct VideoBatchInfoResponse {
+    1: list<common.Video> Videos
+}
 struct DouyinFeedRequest {
     1: optional i64 LatestTime (api.body="latest_time", api.query="latest_time", api.form="latest_time") // 可选参数，限制返回视频的最新投稿时间戳，精确到秒，不填表示当前时间
     // 2: optional string Token (api.body="token", api.query="token", api.form="token") // 可选参数，登录用户设置

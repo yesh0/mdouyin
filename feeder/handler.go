@@ -27,10 +27,10 @@ func (s *FeedServiceImpl) Feed(ctx context.Context, req *rpc.DouyinFeedRequest) 
 		latest = time.UnixMilli(*req.LatestTime)
 	}
 
+	var ids []int64
 	if req.RequestUserId == 0 {
 		videos, err = db.ListLatest(latest, 30)
 	} else {
-		var ids []int64
 		ids, err = cql.ListInbox(req.RequestUserId, latest, 30)
 		if err != utils.ErrorOk {
 			resp.StatusCode = int32(err)
@@ -49,7 +49,7 @@ func (s *FeedServiceImpl) Feed(ctx context.Context, req *rpc.DouyinFeedRequest) 
 	} else {
 		*resp.NextTime = snowy.Time(videos[l-1].Id).UnixMilli()
 	}
-	resp.VideoList, err = convertList(req.RequestUserId, videos)
+	resp.VideoList, err = convertList(ctx, req.RequestUserId, ids, videos)
 	if err != utils.ErrorOk {
 		resp.StatusCode = int32(err)
 		resp.VideoList = nil
@@ -77,7 +77,51 @@ func extractAuthors(user int64, data []db.VideoDO) (authors map[int64]*rpc.User,
 	return
 }
 
-func convertList(user int64, data []db.VideoDO) (videos []*rpc.Video, err utils.ErrorCode) {
+func fillCounts(ctx context.Context, ids []int64, videos []*rpc.Video) utils.ErrorCode {
+	r, err := services.Counter.Fetch(ctx, &rpc.CounterGetRequest{
+		Id:    ids,
+		Kinds: []int8{common.KindVideoFavoriteCount, common.KindVideoCommentCount},
+	})
+	if err != nil {
+		return utils.ErrorRpcTimeout
+	}
+	mapping := make(map[int64]int)
+	for i, id := range ids {
+		mapping[id] = i
+	}
+	for _, counter := range r.Counters {
+		i := mapping[counter.Id]
+		for _, c := range counter.KindCounts {
+			switch c.Kind {
+			case common.KindVideoFavoriteCount:
+				videos[i].FavoriteCount = int64(c.Count)
+			case common.KindVideoCommentCount:
+				videos[i].CommentCount = int64(c.Count)
+			}
+		}
+	}
+	return utils.ErrorOk
+}
+
+func convertList(ctx context.Context, user int64,
+	ids []int64, data []db.VideoDO) (videos []*rpc.Video, err utils.ErrorCode) {
+	if ids == nil {
+		if data == nil {
+			err = utils.ErrorInternalError
+			return
+		}
+		ids = make([]int64, 0, len(data))
+		for _, v := range data {
+			ids = append(ids, v.Id)
+		}
+	}
+	if data == nil {
+		data, err = db.FindVideos(ids)
+		if err != utils.ErrorOk {
+			return
+		}
+	}
+
 	var authors map[int64]*rpc.User
 	authors, err = extractAuthors(user, data)
 	videos = make([]*rpc.Video, 0, len(videos))
@@ -89,6 +133,9 @@ func convertList(user int64, data []db.VideoDO) (videos []*rpc.Video, err utils.
 			CoverUrl: video.CoverUrl,
 			Title:    video.Title,
 		})
+	}
+	if err == utils.ErrorOk {
+		err = fillCounts(ctx, ids, videos)
 	}
 	return
 }
@@ -133,11 +180,22 @@ func (s *FeedServiceImpl) List(ctx context.Context, req *rpc.DouyinPublishListRe
 		resp.StatusCode = int32(utils.ErrorUnanticipated)
 		return resp, nil
 	}
-	resp.VideoList, err = convertList(req.RequestUserId, videos)
+	resp.VideoList, err = convertList(ctx, req.RequestUserId, nil, videos)
 	if err != utils.ErrorOk {
 		resp.StatusCode = int32(err)
 		resp.VideoList = nil
 	}
+	return resp, nil
+}
+
+// Feed implements the FeedServiceImpl interface.
+func (s *FeedServiceImpl) VideoInfo(ctx context.Context, req *rpc.VideoBatchInfoRequest) (*rpc.VideoBatchInfoResponse, error) {
+	resp := rpc.NewVideoBatchInfoResponse()
+	converted, err := convertList(ctx, req.RequestUserId, req.VideoIds, nil)
+	if err != utils.ErrorOk {
+		return resp, nil
+	}
+	resp.Videos = converted
 	return resp, nil
 }
 

@@ -23,7 +23,25 @@ func Favorite(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinFavoriteActionRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.InvalidInput(c, err)
+		return
+	}
+
+	user, err := jwt.AuthorizedUser(c)
+	if err != nil || user == 0 {
+		utils.ErrorUnauthorized.Write(c)
+		return
+	}
+
+	r, err := services.Reaction.Favorite(ctx, &rpc.DouyinFavoriteActionRequest{
+		RequestUserId: user,
+		VideoId:       req.VideoId,
+		ActionType:    req.ActionType,
+	})
+	if err != nil {
+		utils.ErrorRpcTimeout.Write(c)
+	}
+	if utils.RpcError(c, r.StatusCode) {
 		return
 	}
 
@@ -39,11 +57,47 @@ func ListFavorites(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinFavoriteListRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.InvalidInput(c, err)
+		return
+	}
+
+	user, err := jwt.AuthorizedUser(c)
+	if err != nil || user == 0 {
+		utils.ErrorUnauthorized.Write(c)
+		return
+	}
+
+	r, err := services.Reaction.ListFavorites(ctx, &rpc.DouyinFavoriteListRequest{
+		UserId:        user,
+		RequestUserId: user,
+	})
+	if err != nil {
+		utils.ErrorRpcTimeout.Write(c)
+	}
+	if utils.RpcError(c, r.StatusCode) {
+		return
+	}
+
+	info, err := services.Feed.VideoInfo(ctx, &rpc.VideoBatchInfoRequest{
+		VideoIds:      r.VideoList,
+		RequestUserId: user,
+	})
+	if err != nil {
+		utils.ErrorRpcTimeout.Write(c)
+	}
+	if utils.RpcError(c, r.StatusCode) {
 		return
 	}
 
 	resp := new(core.DouyinFavoriteListResponse)
+	resp.VideoList, err = generateVideoList(info.Videos)
+	if err != nil {
+		utils.Error(c, err)
+		return
+	}
+	for _, v := range resp.VideoList {
+		v.IsFavorite = true
+	}
 
 	c.JSON(consts.StatusOK, resp)
 }

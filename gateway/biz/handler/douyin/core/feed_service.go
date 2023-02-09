@@ -55,8 +55,38 @@ func Feed(ctx context.Context, c *app.RequestContext) {
 		utils.Error(c, err)
 		return
 	}
+	if id != 0 {
+		err = fillFavorites(ctx, id, resp.VideoList)
+		if err != nil {
+			utils.Error(c, err)
+			return
+		}
+	}
 
 	c.JSON(consts.StatusOK, resp)
+}
+
+func fillFavorites(ctx context.Context, user int64, videos []*core.Video) error {
+	ids := make([]int64, 0, len(videos))
+	for _, v := range videos {
+		ids = append(ids, v.Id)
+	}
+	r, err := services.Reaction.TestFavorites(ctx, &rpc.FavoriteTestRequest{
+		RequestUserId: user,
+		Videos:        ids,
+	})
+	if err != nil {
+		return utils.ErrorRpcTimeout
+	}
+	if r.StatusCode != int32(consts.StatusOK) {
+		return utils.ErrorCode(r.StatusCode)
+	}
+	for i := 0; i < len(r.IsFavorites); i++ {
+		if r.IsFavorites[i] != 0 {
+			videos[i].IsFavorite = true
+		}
+	}
+	return nil
 }
 
 func generateVideoList(info []*rpc.Video) (vs []*core.Video, err error) {
@@ -70,13 +100,14 @@ func generateVideoList(info []*rpc.Video) (vs []*core.Video, err error) {
 	}
 
 	for _, video := range info {
-		// TODO: Fetch counts
 		vs = append(vs, &core.Video{
-			Id:       video.Id,
-			Author:   authors[video.Author.Id],
-			PlayUrl:  videos.BaseUrl() + path.Join("/media", video.PlayUrl),
-			CoverUrl: videos.BaseUrl() + path.Join("/media", video.CoverUrl),
-			Title:    video.Title,
+			Id:            video.Id,
+			Author:        authors[video.Author.Id],
+			PlayUrl:       videos.BaseUrl() + path.Join("/media", video.PlayUrl),
+			CoverUrl:      videos.BaseUrl() + path.Join("/media", video.CoverUrl),
+			FavoriteCount: video.FavoriteCount,
+			CommentCount:  video.CommentCount,
+			Title:         video.Title,
 		})
 	}
 	return
@@ -209,6 +240,15 @@ func List(ctx context.Context, c *app.RequestContext) {
 	videos, err := generateVideoList(r.VideoList)
 	if err != nil {
 		utils.Error(c, err)
+		return
+	}
+	id, err := jwt.AuthorizedUser(c)
+	if err == nil && id != 0 {
+		err = fillFavorites(ctx, id, videos)
+		if err != nil {
+			utils.Error(c, err)
+			return
+		}
 	}
 
 	resp := &core.DouyinPublishListResponse{
