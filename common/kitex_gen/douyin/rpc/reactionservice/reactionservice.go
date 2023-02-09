@@ -23,6 +23,7 @@ func NewServiceInfo() *kitex.ServiceInfo {
 		"ListFavorites": kitex.NewMethodInfo(listFavoritesHandler, newReactionServiceListFavoritesArgs, newReactionServiceListFavoritesResult, false),
 		"Comment":       kitex.NewMethodInfo(commentHandler, newReactionServiceCommentArgs, newReactionServiceCommentResult, false),
 		"ListComments":  kitex.NewMethodInfo(listCommentsHandler, newReactionServiceListCommentsArgs, newReactionServiceListCommentsResult, false),
+		"TestFavorites": kitex.NewMethodInfo(testFavoritesHandler, newReactionServiceTestFavoritesArgs, newReactionServiceTestFavoritesResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "rpc",
@@ -110,6 +111,24 @@ func newReactionServiceListCommentsResult() interface{} {
 	return rpc.NewReactionServiceListCommentsResult()
 }
 
+func testFavoritesHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*rpc.ReactionServiceTestFavoritesArgs)
+	realResult := result.(*rpc.ReactionServiceTestFavoritesResult)
+	success, err := handler.(rpc.ReactionService).TestFavorites(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newReactionServiceTestFavoritesArgs() interface{} {
+	return rpc.NewReactionServiceTestFavoritesArgs()
+}
+
+func newReactionServiceTestFavoritesResult() interface{} {
+	return rpc.NewReactionServiceTestFavoritesResult()
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -155,6 +174,16 @@ func (p *kClient) ListComments(ctx context.Context, req *rpc.DouyinCommentListRe
 	_args.Req = req
 	var _result rpc.ReactionServiceListCommentsResult
 	if err = p.c.Call(ctx, "ListComments", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) TestFavorites(ctx context.Context, req *rpc.FavoriteTestRequest) (r *rpc.FavoriteTestResponse, err error) {
+	var _args rpc.ReactionServiceTestFavoritesArgs
+	_args.Req = req
+	var _result rpc.ReactionServiceTestFavoritesResult
+	if err = p.c.Call(ctx, "TestFavorites", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

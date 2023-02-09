@@ -15,6 +15,7 @@ type Client interface {
 	ListFavorites(ctx context.Context, req *rpc.DouyinFavoriteListRequest, callOptions ...callopt.Option) (r *rpc.DouyinFavoriteListResponse, err error)
 	Comment(ctx context.Context, req *rpc.DouyinCommentActionRequest, callOptions ...callopt.Option) (r *rpc.DouyinCommentActionResponse, err error)
 	ListComments(ctx context.Context, req *rpc.DouyinCommentListRequest, callOptions ...callopt.Option) (r *rpc.DouyinCommentListResponse, err error)
+	TestFavorites(ctx context.Context, req *rpc.FavoriteTestRequest, callOptions ...callopt.Option) (r *rpc.FavoriteTestResponse, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -64,4 +65,9 @@ func (p *kReactionServiceClient) Comment(ctx context.Context, req *rpc.DouyinCom
 func (p *kReactionServiceClient) ListComments(ctx context.Context, req *rpc.DouyinCommentListRequest, callOptions ...callopt.Option) (r *rpc.DouyinCommentListResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.ListComments(ctx, req)
+}
+
+func (p *kReactionServiceClient) TestFavorites(ctx context.Context, req *rpc.FavoriteTestRequest, callOptions ...callopt.Option) (r *rpc.FavoriteTestResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.TestFavorites(ctx, req)
 }

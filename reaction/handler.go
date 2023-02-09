@@ -6,6 +6,7 @@ import (
 	"common/utils"
 	"context"
 	"reaction/internal/cql"
+	"reaction/internal/db"
 	"reaction/internal/services"
 	"time"
 )
@@ -15,13 +16,58 @@ type ReactionServiceImpl struct{}
 
 // Favorite implements the ReactionServiceImpl interface.
 func (s *ReactionServiceImpl) Favorite(ctx context.Context, req *rpc.DouyinFavoriteActionRequest) (resp *rpc.DouyinFavoriteActionResponse, err error) {
-	// TODO: Your code here...
+	resp = rpc.NewDouyinFavoriteActionResponse()
+	switch req.ActionType {
+	case 1: // Favorite
+		resp.StatusCode = int32(db.Favorite(req.RequestUserId, req.VideoId))
+		if resp.StatusCode == 0 {
+			resp.StatusCode = int32(incrementCount(ctx, req.VideoId, 1))
+		}
+	case 2: // Unfavorite
+		resp.StatusCode = int32(db.Unfavorite(req.RequestUserId, req.VideoId))
+		if resp.StatusCode == 0 {
+			resp.StatusCode = int32(incrementCount(ctx, req.VideoId, -1))
+		}
+	}
 	return
+}
+
+func incrementCount(ctx context.Context, video int64, inc int16) utils.ErrorCode {
+	_, err := services.Counter.Increment(ctx, &rpc.CounterIncRequest{
+		Actions: []*rpc.Increment{
+			{
+				Id:    video,
+				Kind:  common.KindVideoFavoriteCount,
+				Delta: inc,
+			},
+		},
+	})
+	if err != nil {
+		return utils.ErrorRpcTimeout
+	} else {
+		return utils.ErrorOk
+	}
 }
 
 // ListFavorites implements the ReactionServiceImpl interface.
 func (s *ReactionServiceImpl) ListFavorites(ctx context.Context, req *rpc.DouyinFavoriteListRequest) (resp *rpc.DouyinFavoriteListResponse, err error) {
-	// TODO: Your code here...
+	resp = rpc.NewDouyinFavoriteListResponse()
+	favorites, e := db.ListFavorites(req.UserId, 300)
+	resp.StatusCode = int32(e)
+	if e == utils.ErrorOk {
+		resp.VideoList = favorites
+	}
+	return
+}
+
+// TestFavorites implements the ReactionServiceImpl interface.
+func (s *ReactionServiceImpl) TestFavorites(ctx context.Context, req *rpc.FavoriteTestRequest) (resp *rpc.FavoriteTestResponse, err error) {
+	resp = rpc.NewFavoriteTestResponse()
+	favorites, e := db.IsFavorite(req.RequestUserId, req.Videos)
+	resp.StatusCode = int32(e)
+	if e == utils.ErrorOk {
+		resp.IsFavorites = favorites
+	}
 	return
 }
 
