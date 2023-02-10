@@ -40,7 +40,7 @@ func (s *FeedServiceImpl) Feed(ctx context.Context, req *rpc.DouyinFeedRequest) 
 	}
 	if err != utils.ErrorOk {
 		resp.StatusCode = int32(err)
-		return resp, err
+		return resp, nil
 	}
 
 	resp.NextTime = new(int64)

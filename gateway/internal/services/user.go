@@ -12,8 +12,6 @@ import (
 )
 
 func FromUser(u *db.UserDO, counts []*rpc.Counts, followed bool) (user *core.User) {
-	var followers int64
-	var following int64
 	user = &core.User{
 		Id:       int64(u.Id),
 		Name:     u.Nickname,
@@ -26,10 +24,10 @@ func FromUser(u *db.UserDO, counts []*rpc.Counts, followed bool) (user *core.Use
 			for _, kind := range c.KindCounts {
 				switch kind.Kind {
 				case common.KindUserFollowerCount:
-					followers = int64(kind.Count)
+					followers := int64(kind.Count)
 					user.FollowerCount = &followers
 				case common.KindUserFollowingCount:
-					following = int64(kind.Count)
+					following := int64(kind.Count)
 					user.FollowCount = &following
 				}
 			}
@@ -70,6 +68,9 @@ func fillCounts(ctx context.Context, ids []int64, userMap map[int64]*core.User) 
 	for _, count := range counts.Counters {
 		id := count.Id
 		for _, kindCount := range count.KindCounts {
+			if userMap[id] == nil {
+				continue
+			}
 			i := int64(kindCount.Count)
 			switch kindCount.Kind {
 			case common.KindUserFollowerCount:
@@ -91,6 +92,9 @@ func fillRelation(ctx context.Context, ids []int64, user int64, userMap map[int6
 		return err
 	}
 	for _, following := range r.UserList {
+		if userMap[following] == nil {
+			continue
+		}
 		if _, ok := userMap[following]; ok {
 			userMap[following].IsFollow = true
 		}
@@ -101,6 +105,11 @@ func fillRelation(ctx context.Context, ids []int64, user int64, userMap map[int6
 func GatherUserInfo(ctx context.Context, user int64, users []*rpc.User,
 	counts bool, follow bool) (map[int64]*core.User, error) {
 	ids := getIds(users)
+	return GatherUserInfoFromIds(ctx, user, ids, users, counts, follow)
+}
+
+func GatherUserInfoFromIds(ctx context.Context, user int64,
+	ids []int64, users []*rpc.User, counts bool, follow bool) (map[int64]*core.User, error) {
 	basicUsers, err := db.FindUsersByIds(ids)
 	if err != nil {
 		return nil, err
@@ -114,13 +123,16 @@ func GatherUserInfo(ctx context.Context, user int64, users []*rpc.User,
 		}
 	}
 
-	if follow {
+	if users == nil || (follow && user != 0) {
 		if err := fillRelation(ctx, ids, user, userMap); err != nil {
 			return nil, err
 		}
 	} else {
 		for _, user := range users {
 			if user.IsFollow {
+				if userMap[user.Id] == nil {
+					continue
+				}
 				userMap[user.Id].IsFollow = true
 			}
 		}

@@ -17,17 +17,18 @@ import (
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 )
 
-func toUserList(ids []int64) ([]*core.User, error) {
-	users, err := db.FindUsersByIds(ids)
+func toUserList(ctx context.Context, ids []int64, following int64) ([]*core.User, error) {
+	users, err := serivces.GatherUserInfoFromIds(ctx, following, ids, nil, true, following != 0)
 	if err != nil {
-		return nil, utils.ErrorInternalError
+		return nil, err
 	}
 	converted := make([]*core.User, 0, len(users))
-	for _, u := range users {
-		converted = append(converted, &core.User{
-			Id:   int64(u.Id),
-			Name: u.Name,
-		})
+	for _, id := range ids {
+		user := users[id]
+		if following == 0 {
+			user.IsFollow = true
+		}
+		converted = append(converted, user)
 	}
 	return converted, nil
 }
@@ -44,7 +45,7 @@ func Relation(ctx context.Context, c *app.RequestContext) {
 	}
 
 	user, _, err := jwt.Validate(req.Token)
-	if err != nil {
+	if err != nil && user != 0 {
 		utils.ErrorUnauthorized.Write(c)
 		return
 	}
@@ -102,7 +103,7 @@ func Following(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	list, err := toUserList(r.UserList)
+	list, err := toUserList(ctx, r.UserList, 0)
 	if err != nil {
 		utils.Error(c, err)
 		return
@@ -143,7 +144,7 @@ func Follower(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	list, err := toUserList(r.UserList)
+	list, err := toUserList(ctx, r.UserList, user)
 	if err != nil {
 		utils.Error(c, err)
 		return
@@ -184,7 +185,7 @@ func Friend(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	list, err := toUserList(r.UserList)
+	list, err := toUserList(ctx, r.UserList, 0)
 	if err != nil {
 		utils.Error(c, err)
 		return
