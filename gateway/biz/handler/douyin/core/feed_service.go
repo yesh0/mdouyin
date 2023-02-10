@@ -78,7 +78,7 @@ func fillFavorites(ctx context.Context, user int64, videos []*core.Video) error 
 	if err != nil {
 		return utils.ErrorRpcTimeout
 	}
-	if r.StatusCode != int32(consts.StatusOK) {
+	if !utils.ErrorOk.IsCode(r.StatusCode) {
 		return utils.ErrorCode(r.StatusCode)
 	}
 	for i := 0; i < len(r.IsFavorites); i++ {
@@ -93,16 +93,27 @@ func generateVideoList(info []*rpc.Video) (vs []*core.Video, err error) {
 	vs = make([]*core.Video, 0, len(info))
 
 	rpcAuthors := make([]*rpc.User, 0)
+	for _, v := range info {
+		rpcAuthors = append(rpcAuthors, v.Author)
+	}
 	var authors map[int64]*core.User
 	authors, err = services.GatherUserInfo(context.Background(), 0, rpcAuthors, false, false)
 	if err != nil {
 		return
 	}
 
+	fallback := services.FromUser(&db.UserDO{
+		Id:   0,
+		Name: "Unknown",
+	}, nil, false)
 	for _, video := range info {
+		author := fallback
+		if v := authors[video.Author.Id]; v != nil {
+			author = v
+		}
 		vs = append(vs, &core.Video{
 			Id:            video.Id,
-			Author:        authors[video.Author.Id],
+			Author:        author,
 			PlayUrl:       videos.BaseUrl() + path.Join("/media", video.PlayUrl),
 			CoverUrl:      videos.BaseUrl() + path.Join("/media", video.CoverUrl),
 			FavoriteCount: video.FavoriteCount,
