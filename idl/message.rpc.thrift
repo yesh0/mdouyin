@@ -5,9 +5,17 @@ include "common.thrift"
 service MessageService {
     DouyinMessageChatResponse Chat (1: DouyinMessageChatRequest Req) (api.get="/douyin/message/chat/")
     DouyinMessageActionResponse Message (1: DouyinMessageActionRequest Req) (api.post="/douyin/message/action/")
+
+    LatestMessageResponse LatestMessages (1: LatestMessageRequest Req)
 }
 
-
+struct LatestMessageRequest {
+    1: list<i64> Friends
+    2: i64 RequestUserId
+}
+struct LatestMessageResponse {
+    1: list<Message> Messages
+}
 struct DouyinMessageChatRequest {
     // 1: string Token (api.body="token", api.query="token", api.form="token") // 用户鉴权token
     1: i64 RequestUserId (api.body="token", api.query="token", api.form="token") // 用户id

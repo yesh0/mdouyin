@@ -19,8 +19,9 @@ func NewServiceInfo() *kitex.ServiceInfo {
 	serviceName := "MessageService"
 	handlerType := (*rpc.MessageService)(nil)
 	methods := map[string]kitex.MethodInfo{
-		"Chat":    kitex.NewMethodInfo(chatHandler, newMessageServiceChatArgs, newMessageServiceChatResult, false),
-		"Message": kitex.NewMethodInfo(messageHandler, newMessageServiceMessageArgs, newMessageServiceMessageResult, false),
+		"Chat":           kitex.NewMethodInfo(chatHandler, newMessageServiceChatArgs, newMessageServiceChatResult, false),
+		"Message":        kitex.NewMethodInfo(messageHandler, newMessageServiceMessageArgs, newMessageServiceMessageResult, false),
+		"LatestMessages": kitex.NewMethodInfo(latestMessagesHandler, newMessageServiceLatestMessagesArgs, newMessageServiceLatestMessagesResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "rpc",
@@ -72,6 +73,24 @@ func newMessageServiceMessageResult() interface{} {
 	return rpc.NewMessageServiceMessageResult()
 }
 
+func latestMessagesHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*rpc.MessageServiceLatestMessagesArgs)
+	realResult := result.(*rpc.MessageServiceLatestMessagesResult)
+	success, err := handler.(rpc.MessageService).LatestMessages(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newMessageServiceLatestMessagesArgs() interface{} {
+	return rpc.NewMessageServiceLatestMessagesArgs()
+}
+
+func newMessageServiceLatestMessagesResult() interface{} {
+	return rpc.NewMessageServiceLatestMessagesResult()
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -97,6 +116,16 @@ func (p *kClient) Message(ctx context.Context, req *rpc.DouyinMessageActionReque
 	_args.Req = req
 	var _result rpc.MessageServiceMessageResult
 	if err = p.c.Call(ctx, "Message", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) LatestMessages(ctx context.Context, req *rpc.LatestMessageRequest) (r *rpc.LatestMessageResponse, err error) {
+	var _args rpc.MessageServiceLatestMessagesArgs
+	_args.Req = req
+	var _result rpc.MessageServiceLatestMessagesResult
+	if err = p.c.Call(ctx, "LatestMessages", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

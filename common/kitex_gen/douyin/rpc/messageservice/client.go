@@ -13,6 +13,7 @@ import (
 type Client interface {
 	Chat(ctx context.Context, req *rpc.DouyinMessageChatRequest, callOptions ...callopt.Option) (r *rpc.DouyinMessageChatResponse, err error)
 	Message(ctx context.Context, req *rpc.DouyinMessageActionRequest, callOptions ...callopt.Option) (r *rpc.DouyinMessageActionResponse, err error)
+	LatestMessages(ctx context.Context, req *rpc.LatestMessageRequest, callOptions ...callopt.Option) (r *rpc.LatestMessageResponse, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -52,4 +53,9 @@ func (p *kMessageServiceClient) Chat(ctx context.Context, req *rpc.DouyinMessage
 func (p *kMessageServiceClient) Message(ctx context.Context, req *rpc.DouyinMessageActionRequest, callOptions ...callopt.Option) (r *rpc.DouyinMessageActionResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.Message(ctx, req)
+}
+
+func (p *kMessageServiceClient) LatestMessages(ctx context.Context, req *rpc.LatestMessageRequest, callOptions ...callopt.Option) (r *rpc.LatestMessageResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.LatestMessages(ctx, req)
 }

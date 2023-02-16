@@ -190,9 +190,45 @@ func Friend(ctx context.Context, c *app.RequestContext) {
 		utils.Error(c, err)
 		return
 	}
+
+	if err := fillMessages(ctx, user, r.UserList, list); err != utils.ErrorOk {
+		err.Write(c)
+		return
+	}
+
 	resp := &core.DouyinRelationFriendListResponse{
 		UserList: list,
 	}
 
 	c.JSON(consts.StatusOK, resp)
+}
+
+func fillMessages(ctx context.Context, user int64, friends []int64, users []*core.User) utils.ErrorCode {
+	r, err := serivces.Message.LatestMessages(ctx, &rpc.LatestMessageRequest{
+		Friends:       friends,
+		RequestUserId: user,
+	})
+	if err != nil {
+		return utils.ErrorRpcTimeout
+	}
+	mapping := make(map[int64]int)
+	for i, m := range r.Messages {
+		id := m.FromUserId
+		if id == user {
+			id = m.ToUserId
+		}
+		mapping[id] = i
+	}
+
+	for _, u := range users {
+		if i, ok := mapping[u.Id]; ok {
+			var msgType int64
+			if r.Messages[i].FromUserId == user {
+				msgType = 1
+			}
+			u.MsgType = &msgType
+			u.Message = &r.Messages[i].Content
+		}
+	}
+	return utils.ErrorOk
 }
