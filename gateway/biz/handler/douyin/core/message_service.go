@@ -34,8 +34,8 @@ func Chat(ctx context.Context, c *app.RequestContext) {
 	}
 
 	r, err := services.Message.Chat(ctx, &rpc.DouyinMessageChatRequest{
-		RequestUserId: 0,
-		ToUserId:      0,
+		RequestUserId: user,
+		ToUserId:      req.ToUserId,
 	})
 	if err != nil {
 		utils.ErrorRpcTimeout.Write(c)
@@ -48,11 +48,11 @@ func Chat(ctx context.Context, c *app.RequestContext) {
 	resp := new(core.DouyinMessageChatResponse)
 	resp.MessageList = make([]*core.Message, 0, len(r.MessageList))
 	for _, msg := range r.MessageList {
-		t := snowy.Time(msg.Id).Format("2006-01-02 15:04:05")
+		t := snowy.Time(msg.Id).UnixMilli()
 		resp.MessageList = append(resp.MessageList, &core.Message{
 			Id:         msg.Id,
-			ToUserId:   msg.FromUserId,
-			FromUserId: msg.ToUserId,
+			FromUserId: msg.FromUserId,
+			ToUserId:   msg.ToUserId,
 			Content:    msg.Content,
 			CreateTime: &t,
 		})
