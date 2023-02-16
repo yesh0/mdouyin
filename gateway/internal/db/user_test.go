@@ -4,7 +4,6 @@ import (
 	"common/utils"
 	"gateway/internal/db"
 	"testing"
-	"time"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/stretchr/testify/assert"
@@ -50,7 +49,6 @@ func TestUserCreation(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, user)
 	assert.NotNil(t, user.VerifyPassword(test_password))
-	assert.Less(t, time.Until(user.CreatedAt).Abs().Minutes(), float64(1))
 }
 
 func TestInsecurePassword(t *testing.T) {

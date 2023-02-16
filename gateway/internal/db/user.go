@@ -5,7 +5,6 @@ import (
 	"common/utils"
 
 	"github.com/alexedwards/argon2id"
-	"gorm.io/gorm"
 )
 
 const (
@@ -17,7 +16,6 @@ const (
 )
 
 type UserDO struct {
-	gorm.Model
 	Id           int64  `gorm:"<-:create;primaryKey;autoIncrement=false"`
 	Name         string `gorm:"<-:create;uniqueIndex"`
 	Nickname     string // Nickname
