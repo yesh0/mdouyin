@@ -82,41 +82,14 @@ func LatestMessages(user int64, friends []int64) []*rpc.Message {
 
 	messages := make([]*rpc.Message, 0)
 	for _, friend := range friends {
-		var first, second int64
-		if user > friend {
-			first, second = friend, user
-		} else {
-			first, second = user, friend
-		}
-
+		final_friend := friend
 		limit.Acquire(context.Background(), 1)
 		go func() {
-			var (
-				id      int64
-				status  byte
-				message string
-			)
-			if err := session.Query(
-				stmt_list_conversation,
-				first,
-				second,
-				1,
-			).Scan(&id, &status, &message); err != nil {
-				wg.Done()
-				limit.Release(1)
-				return
+			latest := ListMessages(user, final_friend, 1)
+			if len(latest) > 0 {
+				messages = append(messages, latest[0])
 			}
 
-			msg := &rpc.Message{
-				Id:      id,
-				Content: message,
-			}
-			if (status & 1) == 0 {
-				msg.FromUserId, msg.ToUserId = first, second
-			} else {
-				msg.FromUserId, msg.ToUserId = second, first
-			}
-			messages = append(messages, msg)
 			wg.Done()
 			limit.Release(1)
 		}()
