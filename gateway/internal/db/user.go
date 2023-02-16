@@ -52,25 +52,24 @@ func CreateUser(name string, password string) (*UserDO, error) {
 	return &user, nil
 }
 
-func FindUserWith(user *UserDO, fields ...string) (*UserDO, error) {
+func FindUserWith(field string, value interface{}, fields ...string) (*UserDO, error) {
 	query := db
 	if len(fields) != 0 {
 		query = db.Select(fields)
 	}
-	if err := query.First(&user).Error; err != nil {
+	user := &UserDO{}
+	if err := query.Where(field+" = ?", value).First(user).Error; err != nil {
 		return nil, utils.ErrorNoSuchUser
 	}
 	return user, nil
 }
 
 func FindUserByName(name string, fields ...string) (*UserDO, error) {
-	user := UserDO{Name: name}
-	return FindUserWith(&user, fields...)
+	return FindUserWith("name", name, fields...)
 }
 
 func FindUserById(id int64, fields ...string) (*UserDO, error) {
-	user := UserDO{Id: id}
-	return FindUserWith(&user, fields...)
+	return FindUserWith("id", id, fields...)
 }
 
 func FindUsersByIds(ids []int64) (users []UserDO, err error) {
