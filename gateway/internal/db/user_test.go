@@ -45,7 +45,7 @@ func TestUserCreation(t *testing.T) {
 	assert.NotNil(t, user)
 	assert.Nil(t, user.VerifyPassword(test_password))
 
-	user, err = db.FindUserById(user.Id, "Name", "CreatedAt")
+	user, err = db.FindUserById(user.Id, "Name")
 	assert.Nil(t, err)
 	assert.NotNil(t, user)
 	assert.NotNil(t, user.VerifyPassword(test_password))
