@@ -19,6 +19,7 @@ type Client interface {
 	Follower(ctx context.Context, req *rpc.DouyinRelationFollowerListRequest, callOptions ...callopt.Option) (r *rpc.DouyinRelationFollowerListResponse, err error)
 	Friend(ctx context.Context, req *rpc.DouyinRelationFriendListRequest, callOptions ...callopt.Option) (r *rpc.DouyinRelationFriendListResponse, err error)
 	VideoInfo(ctx context.Context, req *rpc.VideoBatchInfoRequest, callOptions ...callopt.Option) (r *rpc.VideoBatchInfoResponse, err error)
+	IsFriend(ctx context.Context, req *rpc.FriendCheckRequest, callOptions ...callopt.Option) (r *rpc.FriendCheckResponse, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -88,4 +89,9 @@ func (p *kFeedServiceClient) Friend(ctx context.Context, req *rpc.DouyinRelation
 func (p *kFeedServiceClient) VideoInfo(ctx context.Context, req *rpc.VideoBatchInfoRequest, callOptions ...callopt.Option) (r *rpc.VideoBatchInfoResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.VideoInfo(ctx, req)
+}
+
+func (p *kFeedServiceClient) IsFriend(ctx context.Context, req *rpc.FriendCheckRequest, callOptions ...callopt.Option) (r *rpc.FriendCheckResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.IsFriend(ctx, req)
 }

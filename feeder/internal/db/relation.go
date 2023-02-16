@@ -15,6 +15,22 @@ type RelationDO struct {
 	CreatedAt time.Time
 }
 
+func IsMutual(follower, followee int64) utils.ErrorCode {
+	result := db.Find(&RelationDO{
+		Followee: followee,
+		Follower: follower,
+		Mutual:   true,
+	})
+	if result.Error != nil {
+		return utils.ErrorDatabaseError
+	}
+	if result.RowsAffected == 1 {
+		return utils.ErrorOk
+	} else {
+		return utils.ErrorForbiddenAPI
+	}
+}
+
 // TODO: Cache
 func Follow(follower, followee int64) utils.ErrorCode {
 	if follower == followee {

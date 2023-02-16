@@ -7,6 +7,7 @@ type RpcServiceName string
 const (
 	CounterServiceName  RpcServiceName = "counter"
 	FeederServiceName   RpcServiceName = "feeder"
+	MessageServiceName  RpcServiceName = "message"
 	ReactionServiceName RpcServiceName = "reaction"
 )
 

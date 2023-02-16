@@ -60,7 +60,7 @@ const (
 	ErrorA0303              ErrorCode = 0xA0303 // 用户授权申请被拒绝
 	ErrorA0310              ErrorCode = 0xA0310 // 因访问对象隐私设置被拦截
 	ErrorExpiredToken       ErrorCode = 0xA0311 // 授权已过期
-	ErrorA0312              ErrorCode = 0xA0312 // 无权限使用 API
+	ErrorForbiddenAPI       ErrorCode = 0xA0312 // 无权限使用 API
 	ErrorA0320              ErrorCode = 0xA0320 // 用户访问被拦截
 	ErrorA0321              ErrorCode = 0xA0321 // 黑名单用户
 	ErrorA0322              ErrorCode = 0xA0322 // 账号被冻结

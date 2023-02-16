@@ -272,3 +272,12 @@ func (s *FeedServiceImpl) Friend(ctx context.Context, req *rpc.DouyinRelationFri
 	resp.UserList = list
 	return
 }
+
+// IsFriend implements the FeedServiceImpl interface.
+func (s *FeedServiceImpl) IsFriend(ctx context.Context, req *rpc.FriendCheckRequest) (resp *rpc.FriendCheckResponse, err error) {
+	resp = rpc.NewFriendCheckResponse()
+	if db.IsMutual(req.RequestUserId, req.UserId) == utils.ErrorOk {
+		resp.IsFriend = 1
+	}
+	return
+}

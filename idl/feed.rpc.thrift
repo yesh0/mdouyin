@@ -12,9 +12,16 @@ service FeedService {
     DouyinRelationFriendListResponse Friend (1: DouyinRelationFriendListRequest Req) (api.get="/douyin/relation/friend/list/")
 
     VideoBatchInfoResponse VideoInfo (1: VideoBatchInfoRequest Req)
+    FriendCheckResponse IsFriend(1: FriendCheckRequest Req)
 }
 
-
+struct FriendCheckRequest {
+    1: i64 UserId
+    2: i64 RequestUserId
+}
+struct FriendCheckResponse {
+    1: i8 IsFriend
+}
 struct VideoBatchInfoRequest {
     1: list<i64> VideoIds // 视频id
     2: i64 RequestUserId  // 用户id

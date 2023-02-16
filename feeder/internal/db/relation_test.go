@@ -12,8 +12,12 @@ func TestMutualFollow(t *testing.T) {
 	userCount := 200
 	for i := 0; i < userCount; i++ {
 		for j := i + 1; j < userCount; j++ {
+			assert.NotEqual(t, utils.ErrorOk, db.IsMutual(int64(i), int64(j)))
+			assert.NotEqual(t, utils.ErrorOk, db.IsMutual(int64(j), int64(i)))
 			assert.Equal(t, utils.ErrorOk, db.Follow(int64(i), int64(j)))
 			assert.Equal(t, utils.ErrorOk, db.Follow(int64(j), int64(i)))
+			assert.Equal(t, utils.ErrorOk, db.IsMutual(int64(i), int64(j)))
+			assert.Equal(t, utils.ErrorOk, db.IsMutual(int64(j), int64(i)))
 		}
 	}
 

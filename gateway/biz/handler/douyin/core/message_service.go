@@ -3,9 +3,15 @@
 package core
 
 import (
+	"common/kitex_gen/douyin/rpc"
+	"common/snowy"
+	"common/utils"
 	"context"
 
 	core "gateway/biz/model/douyin/core"
+	"gateway/internal/jwt"
+	"gateway/internal/services"
+
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 )
@@ -17,11 +23,40 @@ func Chat(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinMessageChatRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.InvalidInput(c, err)
+		return
+	}
+
+	user, err := jwt.AuthorizedUser(c)
+	if err != nil || user == 0 {
+		utils.ErrorUnauthorized.Write(c)
+		return
+	}
+
+	r, err := services.Message.Chat(ctx, &rpc.DouyinMessageChatRequest{
+		RequestUserId: 0,
+		ToUserId:      0,
+	})
+	if err != nil {
+		utils.ErrorRpcTimeout.Write(c)
+		return
+	}
+	if utils.RpcError(c, r.StatusCode) {
 		return
 	}
 
 	resp := new(core.DouyinMessageChatResponse)
+	resp.MessageList = make([]*core.Message, 0, len(r.MessageList))
+	for _, msg := range r.MessageList {
+		t := snowy.Time(msg.Id).Format("2006-01-02 15:04:05")
+		resp.MessageList = append(resp.MessageList, &core.Message{
+			Id:         msg.Id,
+			ToUserId:   msg.FromUserId,
+			FromUserId: msg.ToUserId,
+			Content:    msg.Content,
+			CreateTime: &t,
+		})
+	}
 
 	c.JSON(consts.StatusOK, resp)
 }
@@ -33,7 +68,27 @@ func Message(ctx context.Context, c *app.RequestContext) {
 	var req core.DouyinMessageActionRequest
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		utils.InvalidInput(c, err)
+		return
+	}
+
+	user, err := jwt.AuthorizedUser(c)
+	if err != nil || user == 0 {
+		utils.ErrorUnauthorized.Write(c)
+		return
+	}
+
+	r, err := services.Message.Message(ctx, &rpc.DouyinMessageActionRequest{
+		RequestUserId: user,
+		ToUserId:      req.ToUserId,
+		ActionType:    req.ActionType,
+		Content:       req.Content,
+	})
+	if err != nil {
+		utils.ErrorRpcTimeout.Write(c)
+		return
+	}
+	if utils.RpcError(c, r.StatusCode) {
 		return
 	}
 
