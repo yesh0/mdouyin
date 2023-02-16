@@ -33,6 +33,11 @@ func Favorite(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
+	if err := hasVideo(ctx, req.VideoId); err != utils.ErrorOk {
+		err.Write(c)
+		return
+	}
+
 	r, err := services.Reaction.Favorite(ctx, &rpc.DouyinFavoriteActionRequest{
 		RequestUserId: user,
 		VideoId:       req.VideoId,
@@ -102,6 +107,21 @@ func ListFavorites(ctx context.Context, c *app.RequestContext) {
 	c.JSON(consts.StatusOK, resp)
 }
 
+func hasVideo(ctx context.Context, id int64) utils.ErrorCode {
+	r, err := services.Feed.VideoInfo(ctx, &rpc.VideoBatchInfoRequest{
+		VideoIds:      []int64{id},
+		RequestUserId: 0,
+	})
+	if err != nil {
+		return utils.ErrorRpcTimeout
+	}
+	if len(r.Videos) == 1 {
+		return utils.ErrorOk
+	} else {
+		return utils.ErrorWrongParameter
+	}
+}
+
 // Comment .
 // @router /douyin/comment/action/ [POST]
 func Comment(ctx context.Context, c *app.RequestContext) {
@@ -116,6 +136,11 @@ func Comment(ctx context.Context, c *app.RequestContext) {
 	id, err := jwt.AuthorizedUser(c)
 	if err != nil || id == 0 {
 		utils.Error(c, err)
+		return
+	}
+
+	if err := hasVideo(ctx, req.VideoId); err != utils.ErrorOk {
+		err.Write(c)
 		return
 	}
 
