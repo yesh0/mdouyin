@@ -1,6 +1,7 @@
 package common
 
 import (
+	"common/utils"
 	"net"
 
 	"github.com/cloudwego/kitex/client"
@@ -14,7 +15,7 @@ import (
 //
 // It panics when it cannot connect to an etcd registry.
 func WithEtcdOptions(name RpcServiceName) []server.Option {
-	r, err := etcd.NewEtcdRegistry([]string{"127.0.0.1:2379"})
+	r, err := etcd.NewEtcdRegistry([]string{utils.Env.Etcd})
 	if err != nil {
 		klog.Fatal(err)
 	}
@@ -37,7 +38,7 @@ func WithRandomPort() server.Option {
 //
 // It panics when it cannot connect to an etcd server.
 func WithEtcdResolver() client.Option {
-	r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2379"})
+	r, err := etcd.NewEtcdResolver([]string{utils.Env.Etcd})
 	if err != nil {
 		klog.Fatalf("unable to create etcd resolver: %s", err.Error())
 	}

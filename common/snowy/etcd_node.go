@@ -1,6 +1,7 @@
 package snowy
 
 import (
+	"common/utils"
 	"context"
 	"fmt"
 	"time"
@@ -17,13 +18,13 @@ const (
 var etcd *clientv3.Client
 var lease clientv3.LeaseID
 
-func Init(endpoints ...string) error {
+func Init() error {
 	if etcd != nil {
 		return fmt.Errorf("etcd client already initialized")
 	}
 
 	etcdClient, err := clientv3.New(clientv3.Config{
-		Endpoints: endpoints,
+		Endpoints: []string{utils.Env.Etcd},
 	})
 	if err != nil {
 		return err

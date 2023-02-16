@@ -14,8 +14,9 @@ import (
 
 func main() {
 	utils.InitKlog()
+	utils.InitEnvVars()
 
-	if err := cql.Init("127.0.0.1"); err != nil {
+	if err := cql.Init(utils.Env.Cassandra); err != nil {
 		klog.Fatal(err)
 	}
 
@@ -23,7 +24,7 @@ func main() {
 		klog.Fatal(err)
 	}
 
-	if err := snowy.Init("127.0.0.1:2379"); err != nil {
+	if err := snowy.Init(); err != nil {
 		klog.Fatal(err)
 	}
 

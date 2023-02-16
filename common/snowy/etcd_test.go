@@ -2,6 +2,7 @@ package snowy_test
 
 import (
 	"common/snowy"
+	"common/utils"
 	"math/rand"
 	"strconv"
 	"testing"
@@ -12,7 +13,8 @@ import (
 )
 
 func TestEtcdAtomic(t *testing.T) {
-	assert.Nil(t, snowy.Init("127.0.0.1:2379"))
+	utils.Env.Etcd = "127.0.0.1:2379"
+	assert.Nil(t, snowy.Init())
 	rand.Seed(time.Now().Unix())
 
 	randStr := strconv.FormatInt(rand.Int63(), 16)

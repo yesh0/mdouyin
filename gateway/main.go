@@ -23,33 +23,16 @@ import (
 )
 
 const (
-	cli_base    = "base"
-	cli_db      = "db"
-	cli_secret  = "secret"
 	cli_storage = "storage"
 )
 
 func main() {
 	app := &cli.App{
 		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     cli_db,
-				Required: true,
-				Usage:    "the db url",
-			},
-			&cli.StringFlag{
-				Name:  cli_secret,
-				Usage: "the hmac secret",
-			},
 			&cli.PathFlag{
 				Name:     cli_storage,
 				Required: true,
 				Usage:    "the video storage path",
-			},
-			&cli.StringFlag{
-				Name:     cli_base,
-				Required: true,
-				Usage:    "the base url",
 			},
 		},
 		Action: run,
@@ -80,8 +63,9 @@ func run(ctx *cli.Context) error {
 // TODO: Read from config files or command line
 func initialize(ctx *cli.Context) error {
 	hlog.SetLogger(getLogger())
+	utils.InitEnvVars()
 
-	if ctx.String(cli_secret) == "" {
+	if utils.Env.Secret == "" {
 		secret := make([]byte, 256/8)
 		_, err := rand.Read(secret)
 		if err != nil {
@@ -91,17 +75,15 @@ func initialize(ctx *cli.Context) error {
 		}
 	}
 
-	url := ctx.String(cli_db)
-	utils.Env.Rdbms = url
 	if err := db.Init(utils.GormDialector()); err != nil {
 		return err
 	}
 
-	if err := jwt.Init(ctx.String(cli_secret), time.Hour*24*7); err != nil {
+	if err := jwt.Init(utils.Env.Secret, time.Hour*24*7); err != nil {
 		return err
 	}
 
-	if err := videos.Init(ctx.Path(cli_storage), ctx.String(cli_base)); err != nil {
+	if err := videos.Init(ctx.Path(cli_storage), utils.Env.Base); err != nil {
 		return err
 	}
 
@@ -109,7 +91,7 @@ func initialize(ctx *cli.Context) error {
 		return err
 	}
 
-	if err := snowy.Init("127.0.0.1:2379"); err != nil {
+	if err := snowy.Init(); err != nil {
 		return err
 	}
 
