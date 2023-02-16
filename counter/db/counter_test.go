@@ -1,6 +1,7 @@
 package db_test
 
 import (
+	"common/utils"
 	"counter/db"
 	"log"
 	"math/rand"
@@ -9,12 +10,12 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 func TestMain(m *testing.M) {
-	if err := db.Init(sqlite.Open("file::memory:?cache=shared")); err != nil {
+	utils.Env.Rdbms = "file::memory:?cache=shared"
+	if err := db.Init(utils.GormDialector()); err != nil {
 		log.Fatalln(err)
 	}
 	db.WithDB(func(d *gorm.DB) {

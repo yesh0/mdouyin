@@ -10,7 +10,6 @@ import (
 	"feeder/internal/services"
 
 	"github.com/cloudwego/kitex/pkg/klog"
-	"gorm.io/driver/sqlite"
 )
 
 func main() {
@@ -20,7 +19,7 @@ func main() {
 		klog.Fatal(err)
 	}
 
-	if err := db.Init(sqlite.Open("file::memory:?cache=shared")); err != nil {
+	if err := db.Init(utils.GormDialector()); err != nil {
 		klog.Fatal(err)
 	}
 

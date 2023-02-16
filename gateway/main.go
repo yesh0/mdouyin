@@ -17,13 +17,13 @@ import (
 
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"github.com/cloudwego/hertz/pkg/network/standard"
 	"github.com/hertz-contrib/logger/zap"
 	"github.com/urfave/cli/v2"
 )
 
 const (
 	cli_base    = "base"
-	cli_driver  = "driver"
 	cli_db      = "db"
 	cli_secret  = "secret"
 	cli_storage = "storage"
@@ -32,11 +32,6 @@ const (
 func main() {
 	app := &cli.App{
 		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:  cli_driver,
-				Value: "mysql",
-				Usage: "the sql driver",
-			},
 			&cli.StringFlag{
 				Name:     cli_db,
 				Required: true,
@@ -70,7 +65,12 @@ func run(ctx *cli.Context) error {
 		return err
 	}
 
-	h := server.Default(server.WithHostPorts(":8000"))
+	h := server.Default(
+		server.WithHostPorts(":8000"),
+		server.WithStreamBody(true),
+		server.WithTransport(standard.NewTransporter),
+		server.WithMaxRequestBodySize(1*1024*1024*1024),
+	)
 
 	register(h)
 	h.Spin()
@@ -92,17 +92,9 @@ func initialize(ctx *cli.Context) error {
 	}
 
 	url := ctx.String(cli_db)
-	switch ctx.String(cli_driver) {
-	case "mysql":
-		if err := db.InitWithMySql(url); err != nil {
-			return err
-		}
-	case "sqlite":
-		if err := db.InitWithSqlite(url); err != nil {
-			return err
-		}
-	default:
-		return fmt.Errorf("unknown sql driver")
+	utils.Env.Rdbms = url
+	if err := db.Init(utils.GormDialector()); err != nil {
+		return err
 	}
 
 	if err := jwt.Init(ctx.String(cli_secret), time.Hour*24*7); err != nil {

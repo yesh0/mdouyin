@@ -1,16 +1,16 @@
 package db_test
 
 import (
+	"common/utils"
 	"gateway/internal/db"
 	"log"
 	"os"
 	"testing"
-
-	"gorm.io/driver/sqlite"
 )
 
 func TestMain(m *testing.M) {
-	err := db.Init(sqlite.Open("file::memory:?cache=shared"))
+	utils.Env.Rdbms = "file::memory:?cache=shared"
+	err := db.Init(utils.GormDialector())
 	if err != nil {
 		log.Fatalln(err)
 	}

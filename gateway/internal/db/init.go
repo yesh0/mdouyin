@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"go.uber.org/zap"
-	"gorm.io/driver/mysql"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"moul.io/zapgorm2"
 )
@@ -13,14 +11,6 @@ import (
 var (
 	db *gorm.DB
 )
-
-func InitWithMySql(dsn string) error {
-	return Init(mysql.Open(dsn))
-}
-
-func InitWithSqlite(dsn string) error {
-	return Init(sqlite.Open(dsn))
-}
 
 // Initializes the global DB instance
 func Init(dialector gorm.Dialector) error {

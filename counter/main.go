@@ -7,18 +7,18 @@ import (
 	"counter/db"
 
 	"github.com/cloudwego/kitex/pkg/klog"
-	"gorm.io/driver/sqlite"
 )
 
 func main() {
 	utils.InitKlog()
+	utils.InitEnvVars()
 
 	svr := counterservice.NewServer(
 		new(CounterServiceImpl),
 		common.WithEtcdOptions(common.CounterServiceName)...,
 	)
 
-	if err := db.Init(sqlite.Open("file::memory:?cache=shared")); err != nil {
+	if err := db.Init(utils.GormDialector()); err != nil {
 		klog.Fatal(err)
 	}
 
