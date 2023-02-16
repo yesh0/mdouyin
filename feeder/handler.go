@@ -10,6 +10,8 @@ import (
 	"feeder/internal/db"
 	"feeder/internal/services"
 	"time"
+
+	"github.com/cloudwego/kitex/pkg/klog"
 )
 
 // MessageServiceImpl implements the last service interface defined in the IDL.
@@ -77,7 +79,7 @@ func extractAuthors(user int64, data []db.VideoDO) (authors map[int64]*rpc.User,
 	return
 }
 
-func fillCounts(ctx context.Context, ids []int64, videos []*rpc.Video) utils.ErrorCode {
+func fillVideoCounts(ctx context.Context, ids []int64, videos []*rpc.Video) utils.ErrorCode {
 	r, err := services.Counter.Fetch(ctx, &rpc.CounterGetRequest{
 		Id:    ids,
 		Kinds: []int8{common.KindVideoFavoriteCount, common.KindVideoCommentCount},
@@ -85,12 +87,18 @@ func fillCounts(ctx context.Context, ids []int64, videos []*rpc.Video) utils.Err
 	if err != nil {
 		return utils.ErrorRpcTimeout
 	}
+
 	mapping := make(map[int64]int)
-	for i, id := range ids {
-		mapping[id] = i
+	for i, v := range videos {
+		mapping[v.Id] = i
 	}
+
 	for _, counter := range r.Counters {
-		i := mapping[counter.Id]
+		i, ok := mapping[counter.Id]
+		if !ok {
+			klog.Warnf("extra counters: %v %v %v", ids, videos, r.Counters)
+			continue
+		}
 		for _, c := range counter.KindCounts {
 			switch c.Kind {
 			case common.KindVideoFavoriteCount:
@@ -135,7 +143,7 @@ func convertList(ctx context.Context, user int64,
 		})
 	}
 	if err == utils.ErrorOk {
-		err = fillCounts(ctx, ids, videos)
+		err = fillVideoCounts(ctx, ids, videos)
 	}
 	return
 }

@@ -56,7 +56,7 @@ func getMappedUsers(users []db.UserDO) (userMap map[int64]*core.User) {
 	return
 }
 
-func fillCounts(ctx context.Context, ids []int64, userMap map[int64]*core.User) error {
+func fillUserCounts(ctx context.Context, ids []int64, userMap map[int64]*core.User) error {
 	counts, err := Counter.Fetch(ctx, &rpc.CounterGetRequest{
 		Id:    ids,
 		Kinds: []int8{common.KindUserFollowerCount, common.KindUserFollowingCount},
@@ -118,7 +118,7 @@ func GatherUserInfoFromIds(ctx context.Context, user int64,
 	userMap := getMappedUsers(basicUsers)
 
 	if counts {
-		if err := fillCounts(ctx, ids, userMap); err != nil {
+		if err := fillUserCounts(ctx, ids, userMap); err != nil {
 			return nil, err
 		}
 	}

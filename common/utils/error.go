@@ -70,7 +70,7 @@ const (
 	ErrorA0330              ErrorCode = 0xA0330 // 服务已欠费
 	ErrorA0340              ErrorCode = 0xA0340 // 用户签名异常
 	ErrorA0341              ErrorCode = 0xA0341 // RSA 签名错误
-	ErrorA0400              ErrorCode = 0xA0400 // 用户请求参数错误
+	ErrorWrongParameter     ErrorCode = 0xA0400 // 用户请求参数错误
 	ErrorA0401              ErrorCode = 0xA0401 // 包含非法恶意跳转链接
 	ErrorA0402              ErrorCode = 0xA0402 // 无效的用户输入
 	ErrorA0410              ErrorCode = 0xA0410 // 请求必填参数为空

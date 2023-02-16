@@ -28,6 +28,8 @@ func (s *ReactionServiceImpl) Favorite(ctx context.Context, req *rpc.DouyinFavor
 		if resp.StatusCode == 0 {
 			resp.StatusCode = int32(incrementCount(ctx, req.VideoId, -1))
 		}
+	default:
+		resp.StatusCode = int32(utils.ErrorWrongParameter)
 	}
 	return
 }
