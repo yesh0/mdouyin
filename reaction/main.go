@@ -6,6 +6,7 @@ import (
 	"common/snowy"
 	"common/utils"
 	"log"
+	"reaction/internal/cache"
 	"reaction/internal/cql"
 	"reaction/internal/db"
 	"reaction/internal/services"
@@ -31,6 +32,10 @@ func main() {
 	}
 
 	if err := services.Init(); err != nil {
+		klog.Fatal(err)
+	}
+
+	if err := cache.Init(utils.Env.Redis); err != nil {
 		klog.Fatal(err)
 	}
 

@@ -8,16 +8,18 @@ import (
 type EnvVars struct {
 	Base      string
 	Cassandra string
-	Rdbms     string
 	Etcd      string
+	Rdbms     string
+	Redis     string
 	Secret    string
 }
 
 const (
 	ENV_MDOUYIN_BASE      = "ENV_MDOUYIN_BASE"
 	ENV_MDOUYIN_CASSANDRA = "ENV_MDOUYIN_CASSANDRA"
-	ENV_MDOUYIN_RDBMS     = "ENV_MDOUYIN_RDBMS"
 	ENV_MDOUYIN_ETCD      = "ENV_MDOUYIN_ETCD"
+	ENV_MDOUYIN_REDIS     = "ENV_MDOUYIN_REDIS"
+	ENV_MDOUYIN_RDBMS     = "ENV_MDOUYIN_RDBMS"
 	ENV_MDOUYIN_SECRET    = "ENV_MDOUYIN_SECRET"
 )
 
@@ -36,8 +38,9 @@ func InitEnvVars() {
 	Env = EnvVars{
 		Base:      retrieveEnvOrPanic(ENV_MDOUYIN_BASE),
 		Cassandra: retrieveEnvOrPanic(ENV_MDOUYIN_CASSANDRA),
-		Rdbms:     retrieveEnvOrPanic(ENV_MDOUYIN_RDBMS),
 		Etcd:      retrieveEnvOrPanic(ENV_MDOUYIN_ETCD),
+		Rdbms:     retrieveEnvOrPanic(ENV_MDOUYIN_RDBMS),
+		Redis:     retrieveEnvOrPanic(ENV_MDOUYIN_REDIS),
 		Secret:    retrieveEnvOrPanic(ENV_MDOUYIN_SECRET),
 	}
 }

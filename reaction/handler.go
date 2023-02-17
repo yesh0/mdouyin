@@ -5,6 +5,7 @@ import (
 	"common/kitex_gen/douyin/rpc"
 	"common/utils"
 	"context"
+	"reaction/internal/cache"
 	"reaction/internal/cql"
 	"reaction/internal/db"
 	"reaction/internal/services"
@@ -19,13 +20,23 @@ func (s *ReactionServiceImpl) Favorite(ctx context.Context, req *rpc.DouyinFavor
 	resp = rpc.NewDouyinFavoriteActionResponse()
 	switch req.ActionType {
 	case 1: // Favorite
+		if cache.IsFavorite(ctx, req.RequestUserId, req.VideoId) == 1 {
+			resp.StatusCode = int32(utils.ErrorRepeatedRequests)
+			return
+		}
 		resp.StatusCode = int32(db.Favorite(req.RequestUserId, req.VideoId))
 		if resp.StatusCode == 0 {
+			cache.Favorite(ctx, req.RequestUserId, req.VideoId)
 			resp.StatusCode = int32(incrementCount(ctx, common.KindVideoFavoriteCount, req.VideoId, 1))
 		}
 	case 2: // Unfavorite
+		if cache.IsFavorite(ctx, req.RequestUserId, req.VideoId) == 0 {
+			resp.StatusCode = int32(utils.ErrorRepeatedRequests)
+			return
+		}
 		resp.StatusCode = int32(db.Unfavorite(req.RequestUserId, req.VideoId))
 		if resp.StatusCode == 0 {
+			cache.Unfavorite(ctx, req.RequestUserId, req.VideoId)
 			resp.StatusCode = int32(incrementCount(ctx, common.KindVideoFavoriteCount, req.VideoId, -1))
 		}
 	default:
@@ -55,6 +66,9 @@ func incrementCount(ctx context.Context, kind int8, video int64, inc int16) util
 func (s *ReactionServiceImpl) ListFavorites(ctx context.Context, req *rpc.DouyinFavoriteListRequest) (resp *rpc.DouyinFavoriteListResponse, err error) {
 	resp = rpc.NewDouyinFavoriteListResponse()
 	favorites, e := db.ListFavorites(req.UserId, 300)
+	for _, video := range favorites[:10] {
+		cache.Favorite(ctx, req.UserId, video)
+	}
 	resp.StatusCode = int32(e)
 	if e == utils.ErrorOk {
 		resp.VideoList = favorites
@@ -65,9 +79,36 @@ func (s *ReactionServiceImpl) ListFavorites(ctx context.Context, req *rpc.Douyin
 // TestFavorites implements the ReactionServiceImpl interface.
 func (s *ReactionServiceImpl) TestFavorites(ctx context.Context, req *rpc.FavoriteTestRequest) (resp *rpc.FavoriteTestResponse, err error) {
 	resp = rpc.NewFavoriteTestResponse()
-	favorites, e := db.IsFavorite(req.RequestUserId, req.Videos)
-	resp.StatusCode = int32(e)
-	if e == utils.ErrorOk {
+	favorites := cache.AreFavorites(ctx, req.RequestUserId, req.Videos)
+	remaining := make([]int64, 0)
+	for i, fav := range favorites {
+		if fav == -1 {
+			remaining = append(remaining, req.Videos[i])
+		}
+	}
+
+	if len(remaining) != 0 {
+		other_favs, e := db.IsFavorite(req.RequestUserId, remaining)
+		resp.StatusCode = int32(e)
+		i := 0
+		for j, fav := range favorites {
+			if fav == -1 {
+				switch other_favs[i] {
+				case 0:
+					cache.Unfavorite(ctx, req.RequestUserId, req.Videos[j])
+				case 1:
+					cache.Favorite(ctx, req.RequestUserId, req.Videos[j])
+				}
+				favorites[j] = other_favs[i]
+				i++
+			}
+			if i >= len(other_favs) {
+				break
+			}
+		}
+	}
+
+	if resp.StatusCode == 0 {
 		resp.IsFavorites = favorites
 	}
 	return
