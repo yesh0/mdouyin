@@ -45,6 +45,7 @@ func Favorite(ctx context.Context, c *app.RequestContext) {
 	})
 	if err != nil {
 		utils.ErrorRpcTimeout.Write(c)
+		return
 	}
 	if utils.RpcError(c, r.StatusCode) {
 		return
@@ -78,6 +79,7 @@ func ListFavorites(ctx context.Context, c *app.RequestContext) {
 	})
 	if err != nil {
 		utils.ErrorRpcTimeout.Write(c)
+		return
 	}
 	if utils.RpcError(c, r.StatusCode) {
 		return
@@ -89,6 +91,7 @@ func ListFavorites(ctx context.Context, c *app.RequestContext) {
 	})
 	if err != nil {
 		utils.ErrorRpcTimeout.Write(c)
+		return
 	}
 	if utils.RpcError(c, r.StatusCode) {
 		return
