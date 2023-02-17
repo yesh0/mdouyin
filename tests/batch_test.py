@@ -2,6 +2,7 @@
 
 """Tests for mdouyin."""
 
+import colorama
 import random
 import requests
 import string
@@ -98,14 +99,34 @@ class Server:
         ), ttypes.DouyinPublishActionResponse)
 
     def list_videos(self, user: ttypes.DouyinUserLoginResponse) -> ttypes.DouyinPublishListResponse:
+        """List videos published by the user."""
         return assert_ok(requests.get(
             f"{self.base}/douyin/publish/list/?token={user.Token}&user_id={user.UserId}"
         ), ttypes.DouyinPublishListResponse)
 
     def feed(self, user: ttypes.DouyinUserLoginResponse) -> ttypes.DouyinFeedResponse:
+        """Fetch the feed."""
         return assert_ok(requests.get(
             f"{self.base}/douyin/feed/?token={user.Token}"
         ), ttypes.DouyinFeedResponse)
+
+    def like(self, user: ttypes.DouyinUserLoginResponse, video: ttypes.Video):
+        """Favorite a video."""
+        return assert_ok(requests.post(
+            f"{self.base}/douyin/favorite/action/?token={user.Token}&video_id={video.Id}&action_type=1"
+        ), ttypes.DouyinFavoriteActionResponse)
+
+    def list_likes(self, user: ttypes.DouyinUserLoginResponse) -> ttypes.DouyinFavoriteListResponse:
+        """List favorite videos."""
+        return assert_ok(requests.get(
+            f"{self.base}/douyin/favorite/list/?token={user.Token}&user_id={user.UserId}"
+        ), ttypes.DouyinFavoriteListResponse)
+
+    def unlike(self, user: ttypes.DouyinUserLoginResponse, video: ttypes.Video):
+        """Undo favoriting a video."""
+        return assert_ok(requests.post(
+            f"{self.base}/douyin/favorite/action/?token={user.Token}&video_id={video.Id}&action_type=2"
+        ), ttypes.DouyinFavoriteActionResponse)
 
 
 def random_name():
@@ -116,13 +137,26 @@ def random_name():
     ))
 
 
+indent = 0
 def log_test(func):
     count = 0
+    colorama.just_fix_windows_console()
     def wrapper(*args, **kwargs):
+        global indent
         nonlocal count
         name = func.__name__
-        print(f">>> {name}({count}): {func.__doc__}")
+        doc = func.__doc__
+        prefix = ">>>>" * indent
+        info = "" if indent == 0 else "nested "
+        print(f"{prefix} Running {info}{colorama.Fore.YELLOW}{name}({count}):{colorama.Style.RESET_ALL}")
+        print(
+            f"{prefix} {colorama.Fore.WHITE}{colorama.Style.BRIGHT}  {doc}{colorama.Style.RESET_ALL}",
+            end=None,
+        )
+        indent += 1
         result = func(*args, **kwargs)
+        indent -= 1
+        print(f"\t{colorama.Fore.GREEN}{colorama.Style.BRIGHT}ok{colorama.Style.RESET_ALL}")
         count = count + 1
         return result
     return wrapper
@@ -193,14 +227,16 @@ def test_follow_list(s: Server):
     test_relation(s, test=tester)
 
 
+def assert_contains(videos, title) -> ttypes.Video:
+    for video in videos:
+        if video.Title == title:
+            return video
+    assert video.Title == title
+
+
 @log_test
-def test_video_publish(s: Server):
+def test_video_publish(s: Server, test=None):
     """Test video publishing, listing and feed."""
-    def assert_contains(videos, title):
-        for video in videos:
-            if video.Title == title:
-                return
-        assert video.Title == title
     def tester(users):
         titles = []
         for user in users:
@@ -209,23 +245,67 @@ def test_video_publish(s: Server):
             titles.append(title)
         # The server needs some time to generate the cover images.
         time.sleep(2)
+        published = []
         for user, title in zip(users, titles):
             res = s.list_videos(user)
             videos = cast_ttype_array(res.VideoList, ttypes.Video)
             assert len(videos) == 1
             v: ttypes.Video = videos[0]
+            published.append(v)
             assert v.Author["id"] == user.UserId
             assert v.PlayUrl
             assert v.CoverUrl
             assert v.Title == title
         for i, user in enumerate(users):
             feed = s.feed(user)
+            assert feed.NextTime
             videos = cast_ttype_array(feed.VideoList, ttypes.Video)
             following = titles[:i]
             assert len(videos) >= len(following)
             for title in following:
                 assert_contains(videos, title)
+        if test != None:
+            test(users, published)
     test_relation(s, test=tester)
+
+
+@log_test
+def test_video_reaction(s: Server):
+    """Test video reaction listing and counters."""
+    def tester(users, published):
+        for i, user in enumerate(users):
+            for following in published[:i]:
+                s.like(user, following)
+        for i, user in enumerate(users):
+            own = s.list_videos(user)
+            assert len(own.VideoList) == 1
+            v = cast_ttype(own.VideoList[0], ttypes.Video)
+            assert v.CommentCount == 0
+            assert v.FavoriteCount == 10 - 1 - i
+            feed = s.feed(users[-1])
+            likes = s.list_likes(user)
+            for videos in [
+                cast_ttype_array(feed.VideoList, ttypes.Video),
+                cast_ttype_array(likes.VideoList, ttypes.Video),
+            ]:
+                for j, following in enumerate(published[:i]):
+                    v = assert_contains(videos, following.Title)
+                    assert v.CommentCount == 0
+                    assert v.FavoriteCount == 10 - 1 - j
+                    assert v.IsFavorite
+
+        for i, user in enumerate(users):
+            for following in published[:i]:
+                s.unlike(user, following)
+        for i, user in enumerate(users):
+            own = s.list_videos(user)
+            assert len(own.VideoList) == 1
+            v = cast_ttype(own.VideoList[0], ttypes.Video)
+            assert v.CommentCount == 0
+            assert v.FavoriteCount == 0
+            likes = s.list_likes(user)
+            assert len(likes.VideoList) == 0
+    test_video_publish(s, test=tester)
 
 
 if __name__ == "__main__":
@@ -236,7 +316,7 @@ if __name__ == "__main__":
         return len(args) == 0 or s in args
     s = Server("http://127.0.0.1:8000")
     if wants("user"):
-        for i in range(10):
+        for i in range(3):
             test_user_info(s)
     if wants("follow"):
         for i in range(3):
@@ -244,6 +324,8 @@ if __name__ == "__main__":
             test_follow_list(s)
     if wants("publish"):
         test_video_publish(s)
+    if wants("reaction"):
+        test_video_reaction(s)
 
-    if args[0] in ["-h", "--help", "help"]:
+    if len(args) != 0 and args[0] in ["-h", "--help", "help"]:
         print("Available tests:", available)
