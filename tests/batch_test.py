@@ -106,8 +106,13 @@ class Server:
 
     def feed(self, user: ttypes.DouyinUserLoginResponse) -> ttypes.DouyinFeedResponse:
         """Fetch the feed."""
-        return assert_ok(requests.get(
+        url = (
+            f"{self.base}/douyin/feed/"
+            if user == None else
             f"{self.base}/douyin/feed/?token={user.Token}"
+        )
+        return assert_ok(requests.get(
+            url
         ), ttypes.DouyinFeedResponse)
 
     def like(self, user: ttypes.DouyinUserLoginResponse, video: ttypes.Video):
@@ -128,6 +133,25 @@ class Server:
             f"{self.base}/douyin/favorite/action/?token={user.Token}&video_id={video.Id}&action_type=2"
         ), ttypes.DouyinFavoriteActionResponse)
 
+    def comment(self, user: ttypes.DouyinUserLoginResponse, video: ttypes.Video,
+                message: str) -> ttypes.DouyinCommentActionResponse:
+        """Comment a video."""
+        return assert_ok(requests.post(
+            f"{self.base}/douyin/comment/action/?token={user.Token}&video_id={video.Id}&action_type=1&comment_text={message}"
+        ), ttypes.DouyinCommentActionResponse)
+
+    def list_comments(self, video: ttypes.Video) -> ttypes.DouyinCommentListResponse:
+        """List video comments."""
+        return assert_ok(requests.get(
+            f"{self.base}/douyin/comment/list/?video_id={video.Id}"
+        ), ttypes.DouyinCommentListResponse)
+
+    def uncomment(self, user: ttypes.DouyinUserLoginResponse, video: ttypes.Video, comment: ttypes.Comment):
+        """Undo commenting a video."""
+        return assert_ok(requests.post(
+            f"{self.base}/douyin/comment/action/?token={user.Token}&video_id={video.Id}&action_type=2&comment_id={comment.Id}"
+        ), ttypes.DouyinCommentActionResponse)
+
 
 def random_name():
     """Generate a random name."""
@@ -138,9 +162,12 @@ def random_name():
 
 
 indent = 0
+
+
 def log_test(func):
     count = 0
     colorama.just_fix_windows_console()
+
     def wrapper(*args, **kwargs):
         global indent
         nonlocal count
@@ -148,7 +175,8 @@ def log_test(func):
         doc = func.__doc__
         prefix = ">>>>" * indent
         info = "" if indent == 0 else "nested "
-        print(f"{prefix} Running {info}{colorama.Fore.YELLOW}{name}({count}):{colorama.Style.RESET_ALL}")
+        print(
+            f"{prefix} Running {info}{colorama.Fore.YELLOW}{name}({count}):{colorama.Style.RESET_ALL}")
         print(
             f"{prefix} {colorama.Fore.WHITE}{colorama.Style.BRIGHT}  {doc}{colorama.Style.RESET_ALL}",
             end=None,
@@ -156,7 +184,8 @@ def log_test(func):
         indent += 1
         result = func(*args, **kwargs)
         indent -= 1
-        print(f"\t{colorama.Fore.GREEN}{colorama.Style.BRIGHT}ok{colorama.Style.RESET_ALL}")
+        print(
+            f"\t{colorama.Fore.GREEN}{colorama.Style.BRIGHT}ok{colorama.Style.RESET_ALL}")
         count = count + 1
         return result
     return wrapper
@@ -218,12 +247,15 @@ def test_follow_list(s: Server):
             ids.append(user.Id)
         for user in list:
             assert user.UserId in ids
+
     def tester(users):
         for i, user in enumerate(users):
             list = s.list_follower(user)
-            assert_list_match(cast_ttype_array(list.UserList, ttypes.User), users[i+1:])
+            assert_list_match(cast_ttype_array(
+                list.UserList, ttypes.User), users[i+1:])
             list = s.list_follow(user)
-            assert_list_match(cast_ttype_array(list.UserList, ttypes.User), users[:i])
+            assert_list_match(cast_ttype_array(
+                list.UserList, ttypes.User), users[:i])
     test_relation(s, test=tester)
 
 
@@ -245,6 +277,7 @@ def test_video_publish(s: Server, test=None):
             titles.append(title)
         # The server needs some time to generate the cover images.
         time.sleep(2)
+        assert len(s.feed(None).VideoList) >= 10
         published = []
         for user, title in zip(users, titles):
             res = s.list_videos(user)
@@ -276,12 +309,27 @@ def test_video_reaction(s: Server):
         for i, user in enumerate(users):
             for following in published[:i]:
                 s.like(user, following)
+                s.comment(user, following,
+                          f"www {random_name()} by {user.UserId}")
         for i, user in enumerate(users):
             own = s.list_videos(user)
             assert len(own.VideoList) == 1
             v = cast_ttype(own.VideoList[0], ttypes.Video)
-            assert v.CommentCount == 0
+            assert v.CommentCount == 10 - 1 - i
             assert v.FavoriteCount == 10 - 1 - i
+            res = s.list_comments(v)
+            comments = cast_ttype_array(res.CommentList, ttypes.Comment)
+            assert len(comments) == v.CommentCount
+            commenters = []
+            for comment in comments:
+                comment: ttypes.Comment = comment
+                assert comment.Content.startswith("www ")
+                splits = comment.Content.split(" ")
+                assert splits[-2] == "by"
+                assert splits[-1] == str(comment.User["id"])
+                commenters.append(comment.User["id"])
+            for u in users[i+1:]:
+                assert u.UserId in commenters
             feed = s.feed(users[-1])
             likes = s.list_likes(user)
             for videos in [
@@ -290,7 +338,7 @@ def test_video_reaction(s: Server):
             ]:
                 for j, following in enumerate(published[:i]):
                     v = assert_contains(videos, following.Title)
-                    assert v.CommentCount == 0
+                    assert v.CommentCount == 10 - 1 - j
                     assert v.FavoriteCount == 10 - 1 - j
                     assert v.IsFavorite
 
@@ -301,7 +349,8 @@ def test_video_reaction(s: Server):
             own = s.list_videos(user)
             assert len(own.VideoList) == 1
             v = cast_ttype(own.VideoList[0], ttypes.Video)
-            assert v.CommentCount == 0
+            # Comment counts are not decremented on purpose.
+            assert v.CommentCount == 10 - 1 - i
             assert v.FavoriteCount == 0
             likes = s.list_likes(user)
             assert len(likes.VideoList) == 0
@@ -311,6 +360,7 @@ def test_video_reaction(s: Server):
 if __name__ == "__main__":
     args = sys.argv[1:]
     available = []
+
     def wants(s: str):
         available.append(s)
         return len(args) == 0 or s in args

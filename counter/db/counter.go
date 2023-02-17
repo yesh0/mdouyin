@@ -101,6 +101,7 @@ func Increment(id int64, kind int8, delta int32) (err error) {
 		for i := 0; i < len(newCounters.counts); i++ {
 			newCounters.counts[i] = counters.counts[i] + atomic.LoadInt32(&counters.deltas[i])
 		}
+		newCounters.Add(kind, delta)
 		cache.SetWithTTL(id, newCounters, 0, time.Minute/2)
 	}
 

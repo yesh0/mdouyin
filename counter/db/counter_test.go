@@ -35,6 +35,11 @@ func TestSingleThreaded(t *testing.T) {
 	c, err := db.Get(id)
 	assert.Nil(t, err)
 	assert.Equal(t, int32(5), c.Count(0))
+	time.Sleep(time.Second)
+	db.Increment(id, 1, 5)
+	c, err = db.Get(id)
+	assert.Nil(t, err)
+	assert.Equal(t, int32(5), c.Count(1))
 }
 
 func TestSimple(t *testing.T) {
@@ -46,13 +51,13 @@ func TestSimple(t *testing.T) {
 	time.Sleep(time.Second)
 
 	assert.NotNil(t, counters)
-	assert.Equal(t, int32(0), counters.Count(0))
-	assert.Nil(t, db.Increment(2, 0, 1))
+	assert.Equal(t, int32(0), counters.Count(1))
+	assert.Nil(t, db.Increment(2, 1, 1))
 
 	counters, err = db.Get(2)
 	assert.Nil(t, err)
 	assert.NotNil(t, counters)
-	assert.Equal(t, int32(1), counters.Count(0))
+	assert.Equal(t, int32(1), counters.Count(1))
 }
 
 func TestCounter(t *testing.T) {

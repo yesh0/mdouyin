@@ -189,9 +189,8 @@ func ListComments(ctx context.Context, c *app.RequestContext) {
 	}
 
 	user, err := jwt.AuthorizedUser(c)
-	if err != nil || user == 0 {
-		utils.ErrorUnauthorized.Write(c)
-		return
+	if err != nil {
+		user = 0
 	}
 
 	r, err := services.Reaction.ListComments(ctx, &rpc.DouyinCommentListRequest{

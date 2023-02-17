@@ -21,12 +21,12 @@ func (s *ReactionServiceImpl) Favorite(ctx context.Context, req *rpc.DouyinFavor
 	case 1: // Favorite
 		resp.StatusCode = int32(db.Favorite(req.RequestUserId, req.VideoId))
 		if resp.StatusCode == 0 {
-			resp.StatusCode = int32(incrementCount(ctx, req.VideoId, 1))
+			resp.StatusCode = int32(incrementCount(ctx, common.KindVideoFavoriteCount, req.VideoId, 1))
 		}
 	case 2: // Unfavorite
 		resp.StatusCode = int32(db.Unfavorite(req.RequestUserId, req.VideoId))
 		if resp.StatusCode == 0 {
-			resp.StatusCode = int32(incrementCount(ctx, req.VideoId, -1))
+			resp.StatusCode = int32(incrementCount(ctx, common.KindVideoFavoriteCount, req.VideoId, -1))
 		}
 	default:
 		resp.StatusCode = int32(utils.ErrorWrongParameter)
@@ -34,12 +34,12 @@ func (s *ReactionServiceImpl) Favorite(ctx context.Context, req *rpc.DouyinFavor
 	return
 }
 
-func incrementCount(ctx context.Context, video int64, inc int16) utils.ErrorCode {
+func incrementCount(ctx context.Context, kind int8, video int64, inc int16) utils.ErrorCode {
 	_, err := services.Counter.Increment(ctx, &rpc.CounterIncRequest{
 		Actions: []*rpc.Increment{
 			{
 				Id:    video,
-				Kind:  common.KindVideoFavoriteCount,
+				Kind:  kind,
 				Delta: inc,
 			},
 		},
@@ -88,15 +88,7 @@ func (s *ReactionServiceImpl) Comment(ctx context.Context, req *rpc.DouyinCommen
 			resp.StatusCode = int32(code)
 			return
 		}
-		services.Counter.Increment(ctx, &rpc.CounterIncRequest{
-			Actions: []*rpc.Increment{
-				{
-					Id:    resp.Comment.Id,
-					Kind:  common.KindVideoCommentCount,
-					Delta: 1,
-				},
-			},
-		})
+		resp.StatusCode = int32(incrementCount(ctx, common.KindVideoCommentCount, req.VideoId, 1))
 	case 2: // Removes.
 		if req.CommentId == nil || *req.CommentId == 0 {
 			resp.StatusCode = int32(utils.ErrorWrongInputFormat)
