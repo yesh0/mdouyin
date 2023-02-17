@@ -9,6 +9,7 @@ import (
 	"context"
 
 	core "gateway/biz/model/douyin/core"
+	"gateway/internal/db"
 	"gateway/internal/jwt"
 	"gateway/internal/services"
 
@@ -30,6 +31,11 @@ func Chat(ctx context.Context, c *app.RequestContext) {
 	user, err := jwt.AuthorizedUser(c, &req.Token)
 	if err != nil || user == 0 {
 		utils.ErrorUnauthorized.Write(c)
+		return
+	}
+
+	if !db.UserExists(req.ToUserId) {
+		utils.ErrorNoSuchUser.Write(c)
 		return
 	}
 
@@ -75,6 +81,11 @@ func Message(ctx context.Context, c *app.RequestContext) {
 	user, err := jwt.AuthorizedUser(c, &req.Token)
 	if err != nil || user == 0 {
 		utils.ErrorUnauthorized.Write(c)
+		return
+	}
+
+	if !db.UserExists(req.ToUserId) {
+		utils.ErrorNoSuchUser.Write(c)
 		return
 	}
 

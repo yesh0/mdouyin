@@ -95,11 +95,16 @@ func Following(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
+	if !db.UserExists(req.UserId) {
+		utils.ErrorNoSuchUser.Write(c)
+		return
+	}
+
 	var ids []int64
 	if ids = cache.GetFollowing(user); ids == nil {
 		r, err := serivces.Feed.Following(ctx, &rpc.DouyinRelationFollowListRequest{
 			UserId:        req.UserId,
-			RequestUserId: int64(user),
+			RequestUserId: user,
 		})
 		if err != nil {
 			hlog.Warn(err)
@@ -142,9 +147,14 @@ func Follower(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
+	if !db.UserExists(req.UserId) {
+		utils.ErrorNoSuchUser.Write(c)
+		return
+	}
+
 	r, err := serivces.Feed.Follower(ctx, &rpc.DouyinRelationFollowerListRequest{
 		UserId:        req.UserId,
-		RequestUserId: int64(user),
+		RequestUserId: user,
 	})
 	if err != nil {
 		utils.ErrorRpcTimeout.Write(c)
@@ -183,9 +193,14 @@ func Friend(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
+	if !db.UserExists(req.UserId) {
+		utils.ErrorNoSuchUser.Write(c)
+		return
+	}
+
 	r, err := serivces.Feed.Friend(ctx, &rpc.DouyinRelationFriendListRequest{
 		UserId:        req.UserId,
-		RequestUserId: int64(user),
+		RequestUserId: user,
 	})
 	if err != nil {
 		utils.ErrorRpcTimeout.Write(c)

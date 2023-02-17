@@ -73,8 +73,13 @@ func ListFavorites(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
+	if !db.UserExists(req.UserId) {
+		utils.ErrorNoSuchUser.Write(c)
+		return
+	}
+
 	r, err := services.Reaction.ListFavorites(ctx, &rpc.DouyinFavoriteListRequest{
-		UserId:        user,
+		UserId:        req.UserId,
 		RequestUserId: user,
 	})
 	if err != nil {
