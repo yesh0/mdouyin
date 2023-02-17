@@ -183,7 +183,7 @@ func Friend(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	r, err := serivces.Feed.Friend(context.Background(), &rpc.DouyinRelationFriendListRequest{
+	r, err := serivces.Feed.Friend(ctx, &rpc.DouyinRelationFriendListRequest{
 		UserId:        req.UserId,
 		RequestUserId: int64(user),
 	})

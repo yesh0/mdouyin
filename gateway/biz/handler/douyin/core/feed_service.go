@@ -51,7 +51,7 @@ func Feed(ctx context.Context, c *app.RequestContext) {
 
 	resp := new(core.DouyinFeedResponse)
 	resp.NextTime = r.NextTime
-	resp.VideoList, err = generateVideoList(r.VideoList)
+	resp.VideoList, err = generateVideoList(ctx, r.VideoList)
 	if err != nil {
 		utils.Error(c, err)
 		return
@@ -90,7 +90,7 @@ func fillFavorites(ctx context.Context, user int64, videos []*core.Video) error 
 	return nil
 }
 
-func generateVideoList(info []*rpc.Video) (vs []*core.Video, err error) {
+func generateVideoList(ctx context.Context, info []*rpc.Video) (vs []*core.Video, err error) {
 	vs = make([]*core.Video, 0, len(info))
 
 	rpcAuthors := make([]*rpc.User, 0)
@@ -98,7 +98,7 @@ func generateVideoList(info []*rpc.Video) (vs []*core.Video, err error) {
 		rpcAuthors = append(rpcAuthors, v.Author)
 	}
 	var authors map[int64]*core.User
-	authors, err = services.GatherUserInfo(context.Background(), 0, rpcAuthors, false, false)
+	authors, err = services.GatherUserInfo(ctx, 0, rpcAuthors, false, false)
 	if err != nil {
 		return
 	}
@@ -251,7 +251,7 @@ func List(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	videos, err := generateVideoList(r.VideoList)
+	videos, err := generateVideoList(ctx, r.VideoList)
 	if err != nil {
 		utils.Error(c, err)
 		return

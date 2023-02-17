@@ -95,7 +95,7 @@ func ListFavorites(ctx context.Context, c *app.RequestContext) {
 	}
 
 	resp := new(core.DouyinFavoriteListResponse)
-	resp.VideoList, err = generateVideoList(info.Videos)
+	resp.VideoList, err = generateVideoList(ctx, info.Videos)
 	if err != nil {
 		utils.Error(c, err)
 		return

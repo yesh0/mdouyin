@@ -75,25 +75,29 @@ func Send(user int64, friend int64, message string) utils.ErrorCode {
 	return utils.ErrorOk
 }
 
-func LatestMessages(user int64, friends []int64) []*rpc.Message {
-	wg := sync.WaitGroup{}
-	wg.Add(len(friends))
+func LatestMessages(ctx context.Context, user int64, friends []int64) []*rpc.Message {
 	limit := semaphore.NewWeighted(8)
-
+	m := sync.Mutex{}
 	messages := make([]*rpc.Message, 0)
 	for _, friend := range friends {
 		final_friend := friend
-		limit.Acquire(context.Background(), 1)
+		if limit.Acquire(ctx, 1) != nil {
+			break
+		}
 		go func() {
 			latest := ListMessages(user, final_friend, 1)
 			if len(latest) > 0 {
-				messages = append(messages, latest[0])
+				m.Lock()
+				if ctx.Err() == nil {
+					messages = append(messages, latest[0])
+				}
+				m.Unlock()
 			}
 
-			wg.Done()
 			limit.Release(1)
 		}()
 	}
-	wg.Wait()
+	// Wait for goroutines to finish writing.
+	limit.Acquire(context.Background(), 8)
 	return messages
 }

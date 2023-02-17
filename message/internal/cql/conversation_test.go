@@ -4,6 +4,7 @@ import (
 	"common/kitex_gen/douyin/rpc"
 	"common/snowy"
 	"common/utils"
+	"context"
 	"message/internal/cql"
 	"testing"
 
@@ -33,10 +34,10 @@ func TestConversation(t *testing.T) {
 	check(cql.ListMessages(me, friend, 10))
 	check(cql.ListMessages(friend, me, 10))
 
-	message := cql.LatestMessages(me, []int64{friend})
+	message := cql.LatestMessages(context.Background(), me, []int64{friend})
 	assert.Len(t, message, 1)
 	assert.Equal(t, "Hi", message[0].Content)
-	message = cql.LatestMessages(friend, []int64{me})
+	message = cql.LatestMessages(context.Background(), friend, []int64{me})
 	assert.Len(t, message, 1)
 	assert.Equal(t, "Hi", message[0].Content)
 }

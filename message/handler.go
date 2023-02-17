@@ -31,6 +31,6 @@ func (s *MessageServiceImpl) Message(ctx context.Context, req *rpc.DouyinMessage
 
 func (s *MessageServiceImpl) LatestMessages(ctx context.Context, req *rpc.LatestMessageRequest) (resp *rpc.LatestMessageResponse, err error) {
 	resp = rpc.NewLatestMessageResponse()
-	resp.Messages = cql.LatestMessages(req.RequestUserId, req.Friends)
+	resp.Messages = cql.LatestMessages(ctx, req.RequestUserId, req.Friends)
 	return
 }
