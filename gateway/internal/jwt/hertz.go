@@ -10,6 +10,12 @@ import (
 //
 // Use `AuthorizedUser` or `IsAuthorized` to check.
 func Attach(c *app.RequestContext, token string) error {
+	if c.Keys != nil {
+		if _, ok := c.Keys[JwtIdField]; ok {
+			return nil
+		}
+	}
+
 	id, name, err := Validate(token)
 	if err != nil {
 		return err
@@ -23,7 +29,13 @@ func Attach(c *app.RequestContext, token string) error {
 	return nil
 }
 
-func AuthorizedUser(c *app.RequestContext) (int64, error) {
+func AuthorizedUser(c *app.RequestContext, token *string) (int64, error) {
+	if token != nil && *token != "" {
+		if err := Attach(c, *token); err != nil {
+			return 0, err
+		}
+	}
+
 	if c.Keys == nil {
 		return 0, utils.ErrorUnauthorized
 	}
@@ -37,6 +49,6 @@ func AuthorizedUser(c *app.RequestContext) (int64, error) {
 }
 
 func IsAuthorized(c *app.RequestContext) bool {
-	_, err := AuthorizedUser(c)
+	_, err := AuthorizedUser(c, nil)
 	return err == nil
 }

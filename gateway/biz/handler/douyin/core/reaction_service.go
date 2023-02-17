@@ -27,7 +27,7 @@ func Favorite(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	user, err := jwt.AuthorizedUser(c)
+	user, err := jwt.AuthorizedUser(c, &req.Token)
 	if err != nil || user == 0 {
 		utils.ErrorUnauthorized.Write(c)
 		return
@@ -66,7 +66,7 @@ func ListFavorites(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	user, err := jwt.AuthorizedUser(c)
+	user, err := jwt.AuthorizedUser(c, &req.Token)
 	if err != nil || user == 0 {
 		utils.ErrorUnauthorized.Write(c)
 		return
@@ -133,7 +133,7 @@ func Comment(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	id, err := jwt.AuthorizedUser(c)
+	id, err := jwt.AuthorizedUser(c, &req.Token)
 	if err != nil || id == 0 {
 		utils.Error(c, err)
 		return
@@ -188,7 +188,7 @@ func ListComments(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	user, err := jwt.AuthorizedUser(c)
+	user, err := jwt.AuthorizedUser(c, &req.Token)
 	if err != nil {
 		user = 0
 	}

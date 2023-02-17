@@ -27,7 +27,7 @@ func Chat(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	user, err := jwt.AuthorizedUser(c)
+	user, err := jwt.AuthorizedUser(c, &req.Token)
 	if err != nil || user == 0 {
 		utils.ErrorUnauthorized.Write(c)
 		return
@@ -72,7 +72,7 @@ func Message(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	user, err := jwt.AuthorizedUser(c)
+	user, err := jwt.AuthorizedUser(c, &req.Token)
 	if err != nil || user == 0 {
 		utils.ErrorUnauthorized.Write(c)
 		return

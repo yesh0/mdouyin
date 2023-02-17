@@ -93,7 +93,7 @@ func Info(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	id, err := jwt.AuthorizedUser(c)
+	id, err := jwt.AuthorizedUser(c, &req.Token)
 	if err != nil {
 		utils.Error(c, err)
 		return

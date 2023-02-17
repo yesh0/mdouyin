@@ -89,7 +89,7 @@ func Following(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	user, err := jwt.AuthorizedUser(c)
+	user, err := jwt.AuthorizedUser(c, &req.Token)
 	if err != nil {
 		utils.Error(c, err)
 		return
@@ -136,7 +136,7 @@ func Follower(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	user, err := jwt.AuthorizedUser(c)
+	user, err := jwt.AuthorizedUser(c, &req.Token)
 	if err != nil {
 		utils.Error(c, err)
 		return
@@ -177,7 +177,7 @@ func Friend(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	user, err := jwt.AuthorizedUser(c)
+	user, err := jwt.AuthorizedUser(c, &req.Token)
 	if err != nil {
 		utils.Error(c, err)
 		return

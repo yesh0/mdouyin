@@ -32,7 +32,7 @@ func Feed(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	id, err := jwt.AuthorizedUser(c)
+	id, err := jwt.AuthorizedUser(c, req.Token)
 	if err != nil {
 		id = 0
 	}
@@ -256,7 +256,7 @@ func List(ctx context.Context, c *app.RequestContext) {
 		utils.Error(c, err)
 		return
 	}
-	id, err := jwt.AuthorizedUser(c)
+	id, err := jwt.AuthorizedUser(c, &req.Token)
 	if err == nil && id != 0 {
 		err = fillFavorites(ctx, id, videos)
 		if err != nil {
