@@ -29,8 +29,8 @@ func GetUser(user int64) *core.User {
 	return nil
 }
 
-func SetUser(user *core.User) {
-	cache.Set(user.Id, user, int64(unsafe.Sizeof(*user)))
+func SetUser(id int64, user *core.User) {
+	cache.Set(id, user, int64(unsafe.Sizeof(*user)))
 	user.IsFollow = false
 	user.Message = nil
 	user.MsgType = nil

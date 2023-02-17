@@ -52,7 +52,7 @@ func getIds(users []*rpc.User) []int64 {
 func getMappedUsers(userMap map[int64]*core.User, users []db.UserDO) map[int64]*core.User {
 	for _, user := range users {
 		converted := FromUser(&user, nil, false)
-		cache.SetUser(converted)
+		cache.SetUser(user.Id, converted)
 		userMap[user.Id] = FromUser(&user, nil, false)
 	}
 	return userMap

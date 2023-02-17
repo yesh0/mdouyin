@@ -3,6 +3,7 @@ package db
 import (
 	"common/snowy"
 	"common/utils"
+	"gateway/internal/cache"
 
 	"github.com/alexedwards/argon2id"
 )
@@ -85,7 +86,14 @@ func FindUsersByIds(ids []int64) (users []UserDO, err error) {
 }
 
 func UserExists(id int64) bool {
-	return db.Limit(1).Find(&UserDO{Id: id}).RowsAffected == 1
+	if cache.GetUser(id) != nil {
+		return true
+	}
+	result := db.Limit(1).Find(&UserDO{Id: id}).RowsAffected == 1
+	if !result {
+		cache.SetUser(id, nil)
+	}
+	return result
 }
 
 func (u *UserDO) VerifyPassword(password string) error {
