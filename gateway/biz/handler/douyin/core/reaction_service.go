@@ -8,6 +8,7 @@ import (
 	"context"
 
 	core "gateway/biz/model/douyin/core"
+	"gateway/internal/cache"
 	"gateway/internal/db"
 	"gateway/internal/jwt"
 	"gateway/internal/services"
@@ -30,6 +31,11 @@ func Favorite(ctx context.Context, c *app.RequestContext) {
 	user, err := jwt.AuthorizedUser(c, &req.Token)
 	if err != nil || user == 0 {
 		utils.ErrorUnauthorized.Write(c)
+		return
+	}
+
+	if cache.FavoriteLimit.Wait(ctx, user) != nil {
+		utils.ErrorTooManyRequests.Write(c)
 		return
 	}
 

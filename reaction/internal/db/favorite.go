@@ -28,7 +28,7 @@ func Favorite(user int64, video int64) utils.ErrorCode {
 		Video:  video,
 	}
 	if err := db.Create(&favorite).Error; err != nil {
-		return utils.ErrorUnanticipated
+		return utils.ErrorRepeatedRequests
 	}
 	return utils.ErrorOk
 }
@@ -39,7 +39,7 @@ func Unfavorite(user int64, video int64) utils.ErrorCode {
 		return utils.ErrorDatabaseError
 	}
 	if result.RowsAffected == 0 {
-		return utils.ErrorUnanticipated
+		return utils.ErrorRepeatedRequests
 	}
 	return utils.ErrorOk
 }

@@ -9,6 +9,8 @@ import (
 
 var cache *ristretto.Cache
 
+var FavoriteLimit *Limiter
+
 func Init() (err error) {
 	cache, err = ristretto.NewCache(&ristretto.Config{
 		NumCounters: 10e5,
@@ -18,6 +20,12 @@ func Init() (err error) {
 	if err != nil {
 		return
 	}
+
+	FavoriteLimit, err = NewRateLimiter(10000, 20000)
+	if err != nil {
+		return
+	}
+
 	return
 }
 

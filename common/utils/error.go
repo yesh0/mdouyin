@@ -95,7 +95,7 @@ const (
 	ErrorA0442              ErrorCode = 0xA0442 // 确认订单超时
 	ErrorA0443              ErrorCode = 0xA0443 // 订单已关闭
 	ErrorA0500              ErrorCode = 0xA0500 // 用户请求服务异常
-	ErrorA0501              ErrorCode = 0xA0501 // 请求次数超出限制
+	ErrorTooManyRequests    ErrorCode = 0xA0501 // 请求次数超出限制
 	ErrorA0502              ErrorCode = 0xA0502 // 请求并发数超出限制
 	ErrorA0503              ErrorCode = 0xA0503 // 用户操作请等待
 	ErrorA0504              ErrorCode = 0xA0504 // WebSocket 连接异常
