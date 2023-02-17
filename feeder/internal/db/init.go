@@ -1,6 +1,7 @@
 package db
 
 import (
+	"common/utils"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -8,13 +9,13 @@ import (
 
 var db *gorm.DB
 
-func Init(dialector gorm.Dialector) error {
+func Init() error {
 	if db != nil {
 		return fmt.Errorf("db already initialized")
 	}
 
 	var err error
-	if db, err = gorm.Open(dialector); err != nil {
+	if db, err = utils.Open(); err != nil {
 		return err
 	}
 

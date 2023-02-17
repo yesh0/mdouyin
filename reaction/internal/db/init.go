@@ -1,11 +1,15 @@
 package db
 
-import "gorm.io/gorm"
+import (
+	"common/utils"
+
+	"gorm.io/gorm"
+)
 
 var db *gorm.DB
 
-func Init(dialector gorm.Dialector) (err error) {
-	db, err = gorm.Open(dialector)
+func Init() (err error) {
+	db, err = utils.Open()
 	if err != nil {
 		return
 	}

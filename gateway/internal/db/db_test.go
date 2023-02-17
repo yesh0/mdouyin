@@ -10,7 +10,7 @@ import (
 
 func TestMain(m *testing.M) {
 	utils.Env.Rdbms = "file::memory:?cache=shared"
-	err := db.Init(utils.GormDialector())
+	err := db.Init()
 	if err != nil {
 		log.Fatalln(err)
 	}

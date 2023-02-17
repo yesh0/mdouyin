@@ -15,6 +15,7 @@ require (
 	gorm.io/driver/mysql v1.4.6
 	gorm.io/driver/sqlite v1.4.4
 	gorm.io/gorm v1.24.5
+	moul.io/zapgorm2 v1.2.0
 )
 
 require (
@@ -58,7 +59,7 @@ require (
 	go.opentelemetry.io/otel v1.9.0 // indirect
 	go.opentelemetry.io/otel/trace v1.9.0 // indirect
 	go.uber.org/atomic v1.8.0 // indirect
-	go.uber.org/multierr v1.6.0 // indirect
+	go.uber.org/multierr v1.7.0 // indirect
 	golang.org/x/arch v0.0.0-20220722155209-00200b7164a7 // indirect
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect

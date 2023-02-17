@@ -1,11 +1,10 @@
 package db
 
 import (
+	"common/utils"
 	"fmt"
 
-	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"moul.io/zapgorm2"
 )
 
 var (
@@ -13,19 +12,14 @@ var (
 )
 
 // Initializes the global DB instance
-func Init(dialector gorm.Dialector) error {
+func Init() error {
 	if db != nil {
 		return fmt.Errorf("database already initialized")
 	}
 
 	var err error
 
-	logger := zapgorm2.New(zap.L())
-	logger.SetAsDefault()
-
-	db, err = gorm.Open(dialector, &gorm.Config{
-		Logger: logger,
-	})
+	db, err = utils.Open()
 	if err != nil {
 		return err
 	}

@@ -12,6 +12,7 @@
 package db
 
 import (
+	"common/utils"
 	"math"
 	"sync/atomic"
 	"time"
@@ -24,8 +25,8 @@ import (
 var db *gorm.DB
 var cache *ristretto.Cache
 
-func Init(dialector gorm.Dialector) (err error) {
-	db, err = gorm.Open(dialector)
+func Init() (err error) {
+	db, err = utils.Open()
 	if err != nil {
 		return
 	}

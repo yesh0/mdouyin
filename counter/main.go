@@ -18,7 +18,7 @@ func main() {
 		common.WithEtcdOptions(common.CounterServiceName)...,
 	)
 
-	if err := db.Init(utils.GormDialector()); err != nil {
+	if err := db.Init(); err != nil {
 		klog.Fatal(err)
 	}
 

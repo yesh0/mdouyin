@@ -76,7 +76,7 @@ func initialize(ctx *cli.Context) error {
 		}
 	}
 
-	if err := db.Init(utils.GormDialector()); err != nil {
+	if err := db.Init(); err != nil {
 		return err
 	}
 
