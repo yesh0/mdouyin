@@ -39,3 +39,21 @@ func SetUser(user *core.User) {
 func Flush(user int64) {
 	cache.Del(user)
 }
+
+func FlushFollowing(user int64) {
+	id := uint64(user) | (uint64(1) << 63)
+	cache.Del(id)
+}
+
+func GetFollowing(user int64) []int64 {
+	id := uint64(user) | (uint64(1) << 63)
+	if v, ok := cache.Get(id); ok && v != nil {
+		return v.([]int64)
+	}
+	return nil
+}
+
+func SetFollowing(user int64, v []int64) {
+	id := uint64(user) | (uint64(1) << 63)
+	cache.Set(id, v, int64(len(v)*8))
+}

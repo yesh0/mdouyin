@@ -86,14 +86,19 @@ func fillUserCounts(ctx context.Context, ids []int64, userMap map[int64]*core.Us
 }
 
 func fillRelation(ctx context.Context, ids []int64, user int64, userMap map[int64]*core.User) error {
-	r, err := Feed.Following(ctx, &rpc.DouyinRelationFollowListRequest{
-		UserId:        user,
-		RequestUserId: user,
-	})
-	if err != nil {
-		return err
+	var list []int64
+	if list = cache.GetFollowing(user); list == nil {
+		r, err := Feed.Following(ctx, &rpc.DouyinRelationFollowListRequest{
+			UserId:        user,
+			RequestUserId: user,
+		})
+		if err != nil {
+			return err
+		}
+		list = r.UserList
+		cache.SetFollowing(user, list)
 	}
-	for _, following := range r.UserList {
+	for _, following := range list {
 		if userMap[following] == nil {
 			continue
 		}

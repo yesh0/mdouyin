@@ -73,6 +73,7 @@ func Relation(ctx context.Context, c *app.RequestContext) {
 
 	cache.Flush(user)
 	cache.Flush(req.ToUserId)
+	cache.FlushFollowing(user)
 
 	c.JSON(consts.StatusOK, resp)
 }
@@ -94,20 +95,25 @@ func Following(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	r, err := serivces.Feed.Following(ctx, &rpc.DouyinRelationFollowListRequest{
-		UserId:        req.UserId,
-		RequestUserId: int64(user),
-	})
-	if err != nil {
-		hlog.Warn(err)
-		utils.ErrorRpcTimeout.Write(c)
-		return
-	}
-	if utils.RpcError(c, r.StatusCode) {
-		return
+	var ids []int64
+	if ids = cache.GetFollowing(user); ids == nil {
+		r, err := serivces.Feed.Following(ctx, &rpc.DouyinRelationFollowListRequest{
+			UserId:        req.UserId,
+			RequestUserId: int64(user),
+		})
+		if err != nil {
+			hlog.Warn(err)
+			utils.ErrorRpcTimeout.Write(c)
+			return
+		}
+		if utils.RpcError(c, r.StatusCode) {
+			return
+		}
+		ids = r.UserList
+		cache.SetFollowing(user, ids)
 	}
 
-	list, err := toUserList(ctx, r.UserList, 0)
+	list, err := toUserList(ctx, ids, 0)
 	if err != nil {
 		utils.Error(c, err)
 		return
