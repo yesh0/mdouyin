@@ -100,6 +100,10 @@ func initialize(ctx *cli.Context) error {
 
 func getLogger() *zap.Logger {
 	logger := zap.NewLogger(zap.WithCoreEnc(utils.GetZapEncoder()))
-	logger.SetLevel(hlog.LevelTrace)
+	if _, ok := os.LookupEnv("DEBUG"); ok {
+		logger.SetLevel(hlog.LevelDebug)
+	} else {
+		logger.SetLevel(hlog.LevelInfo)
+	}
 	return logger
 }
