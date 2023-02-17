@@ -10,6 +10,7 @@ import (
 	"path"
 
 	core "gateway/biz/model/douyin/core"
+	"gateway/internal/cache"
 	"gateway/internal/db"
 	"gateway/internal/jwt"
 	"gateway/internal/services"
@@ -215,6 +216,8 @@ func Publish(ctx context.Context, c *app.RequestContext) {
 	}()
 
 	resp := new(core.DouyinPublishActionResponse)
+
+	cache.Flush(id)
 
 	c.JSON(consts.StatusOK, resp)
 }

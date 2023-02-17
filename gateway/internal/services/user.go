@@ -7,6 +7,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"gateway/biz/model/douyin/core"
+	"gateway/internal/cache"
 	"gateway/internal/db"
 	"strings"
 )
@@ -48,12 +49,13 @@ func getIds(users []*rpc.User) []int64 {
 	return ids
 }
 
-func getMappedUsers(users []db.UserDO) (userMap map[int64]*core.User) {
-	userMap = make(map[int64]*core.User)
+func getMappedUsers(userMap map[int64]*core.User, users []db.UserDO) map[int64]*core.User {
 	for _, user := range users {
+		converted := FromUser(&user, nil, false)
+		cache.SetUser(converted)
 		userMap[user.Id] = FromUser(&user, nil, false)
 	}
-	return
+	return userMap
 }
 
 func fillUserCounts(ctx context.Context, ids []int64, userMap map[int64]*core.User) error {
@@ -110,15 +112,25 @@ func GatherUserInfo(ctx context.Context, user int64, users []*rpc.User,
 
 func GatherUserInfoFromIds(ctx context.Context, user int64,
 	ids []int64, users []*rpc.User, counts bool, follow bool) (map[int64]*core.User, error) {
-	basicUsers, err := db.FindUsersByIds(ids)
+	userMap := make(map[int64]*core.User)
+	coldIds := make([]int64, 0, len(ids)/2)
+	for _, id := range ids {
+		if u := cache.GetUser(id); u != nil {
+			userMap[id] = u
+		} else {
+			coldIds = append(coldIds, id)
+		}
+	}
+
+	basicUsers, err := db.FindUsersByIds(coldIds)
 	if err != nil {
 		return nil, err
 	}
 
-	userMap := getMappedUsers(basicUsers)
+	userMap = getMappedUsers(userMap, basicUsers)
 
 	if counts {
-		if err := fillUserCounts(ctx, ids, userMap); err != nil {
+		if err := fillUserCounts(ctx, coldIds, userMap); err != nil {
 			return nil, err
 		}
 	}

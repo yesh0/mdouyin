@@ -8,6 +8,7 @@ import (
 
 	"common/kitex_gen/douyin/rpc"
 	core "gateway/biz/model/douyin/core"
+	"gateway/internal/cache"
 	"gateway/internal/db"
 	"gateway/internal/jwt"
 	serivces "gateway/internal/services"
@@ -56,7 +57,7 @@ func Relation(ctx context.Context, c *app.RequestContext) {
 	}
 
 	r, err := serivces.Feed.Relation(ctx, &rpc.DouyinRelationActionRequest{
-		RequestUserId: int64(user),
+		RequestUserId: user,
 		ToUserId:      req.ToUserId,
 		ActionType:    req.ActionType,
 	})
@@ -69,6 +70,9 @@ func Relation(ctx context.Context, c *app.RequestContext) {
 	}
 
 	resp := new(core.DouyinRelationActionResponse)
+
+	cache.Flush(user)
+	cache.Flush(req.ToUserId)
 
 	c.JSON(consts.StatusOK, resp)
 }

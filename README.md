@@ -24,6 +24,8 @@
   a user obviously has an empty feed, but the app stil shows something.
   Probably the app has some kind of internal cache such that it merges all feeds?
 - [ ] File uploading is really slow.
+- [ ] Argon2 is really memory-intensive. We should rate-limit registrations and logins.
+  Otherwise the gateway will get killed for using too much memory.
 
 ## Improvements
 

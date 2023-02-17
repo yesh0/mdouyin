@@ -3,12 +3,11 @@
 package core
 
 import (
-	"common"
-	"common/kitex_gen/douyin/rpc"
 	"common/utils"
 	"context"
 
 	core "gateway/biz/model/douyin/core"
+	"gateway/internal/cache"
 	"gateway/internal/db"
 	"gateway/internal/jwt"
 	"gateway/internal/services"
@@ -40,9 +39,11 @@ func Register(ctx context.Context, c *app.RequestContext) {
 	}
 
 	resp := &core.DouyinUserRegisterResponse{
-		UserId: int64(user.Id),
+		UserId: user.Id,
 		Token:  token,
 	}
+
+	cache.Flush(resp.UserId)
 
 	c.JSON(consts.StatusOK, resp)
 }
@@ -74,7 +75,7 @@ func Login(ctx context.Context, c *app.RequestContext) {
 	}
 
 	resp := &core.DouyinUserLoginResponse{
-		UserId: int64(user.Id),
+		UserId: user.Id,
 		Token:  token,
 	}
 
@@ -92,27 +93,20 @@ func Info(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
-	if _, err := jwt.AuthorizedUser(c); err != nil {
-		utils.Error(c, err)
-		return
-	}
-	user, err := db.FindUserById(req.UserId)
+	id, err := jwt.AuthorizedUser(c)
 	if err != nil {
 		utils.Error(c, err)
 		return
 	}
 
-	counts, err := services.Counter.Fetch(ctx, &rpc.CounterGetRequest{
-		Id:    []int64{user.Id},
-		Kinds: []int8{common.KindUserFollowerCount, common.KindUserFollowingCount},
-	})
+	users, err := services.GatherUserInfoFromIds(ctx, id, []int64{req.UserId}, nil, true, true)
 	if err != nil {
-		utils.Error(c, err)
+		utils.ErrorRpcTimeout.Write(c)
 		return
 	}
 
 	resp := &core.DouyinUserResponse{
-		User: services.FromUser(user, counts.Counters, false),
+		User: users[req.UserId],
 	}
 
 	c.JSON(consts.StatusOK, resp)

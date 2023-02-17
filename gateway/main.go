@@ -8,6 +8,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"gateway/internal/cache"
 	"gateway/internal/db"
 	"gateway/internal/jwt"
 	"gateway/internal/services"
@@ -76,6 +77,10 @@ func initialize(ctx *cli.Context) error {
 	}
 
 	if err := db.Init(utils.GormDialector()); err != nil {
+		return err
+	}
+
+	if err := cache.Init(); err != nil {
 		return err
 	}
 
