@@ -5,6 +5,8 @@
 import random
 import requests
 import string
+import sys
+import time
 import ttypes
 
 
@@ -81,6 +83,29 @@ class Server:
         return assert_ok(requests.get(
             f"{self.base}/douyin/relation/follower/list/?token={user.Token}&user_id={user.UserId}"
         ), ttypes.DouyinRelationFollowerListResponse)
+
+    def publish(self, user: ttypes.DouyinUserLoginResponse, file: str, title: str):
+        """Publish a video."""
+        return assert_ok(requests.post(
+            f"{self.base}/douyin/publish/action/",
+            data={
+                "token": user.Token,
+                "title": title,
+            },
+            files={
+                "data": open(file, "rb"),
+            },
+        ), ttypes.DouyinPublishActionResponse)
+
+    def list_videos(self, user: ttypes.DouyinUserLoginResponse) -> ttypes.DouyinPublishListResponse:
+        return assert_ok(requests.get(
+            f"{self.base}/douyin/publish/list/?token={user.Token}&user_id={user.UserId}"
+        ), ttypes.DouyinPublishListResponse)
+
+    def feed(self, user: ttypes.DouyinUserLoginResponse) -> ttypes.DouyinFeedResponse:
+        return assert_ok(requests.get(
+            f"{self.base}/douyin/feed/?token={user.Token}"
+        ), ttypes.DouyinFeedResponse)
 
 
 def random_name():
@@ -168,11 +193,57 @@ def test_follow_list(s: Server):
     test_relation(s, test=tester)
 
 
+@log_test
+def test_video_publish(s: Server):
+    """Test video publishing, listing and feed."""
+    def assert_contains(videos, title):
+        for video in videos:
+            if video.Title == title:
+                return
+        assert video.Title == title
+    def tester(users):
+        titles = []
+        for user in users:
+            title = "CC Ink Stamp Animation " + random_name()
+            s.publish(user, "./cc_ink_stamp_animation_cc0.mp4", title)
+            titles.append(title)
+        # The server needs some time to generate the cover images.
+        time.sleep(2)
+        for user, title in zip(users, titles):
+            res = s.list_videos(user)
+            videos = cast_ttype_array(res.VideoList, ttypes.Video)
+            assert len(videos) == 1
+            v: ttypes.Video = videos[0]
+            assert v.Author["id"] == user.UserId
+            assert v.PlayUrl
+            assert v.CoverUrl
+            assert v.Title == title
+        for i, user in enumerate(users):
+            feed = s.feed(user)
+            videos = cast_ttype_array(feed.VideoList, ttypes.Video)
+            following = titles[:i]
+            assert len(videos) >= len(following)
+            for title in following:
+                assert_contains(videos, title)
+    test_relation(s, test=tester)
+
+
 if __name__ == "__main__":
+    args = sys.argv[1:]
+    available = []
+    def wants(s: str):
+        available.append(s)
+        return len(args) == 0 or s in args
     s = Server("http://127.0.0.1:8000")
-    for i in range(10):
-        test_user_info(s)
-    for i in range(3):
-        test_relation(s)
-    for i in range(3):
-        test_follow_list(s)
+    if wants("user"):
+        for i in range(10):
+            test_user_info(s)
+    if wants("follow"):
+        for i in range(3):
+            # test_relation(s): Tested by test_follow_list
+            test_follow_list(s)
+    if wants("publish"):
+        test_video_publish(s)
+
+    if args[0] in ["-h", "--help", "help"]:
+        print("Available tests:", available)
