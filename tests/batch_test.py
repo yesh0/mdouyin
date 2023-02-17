@@ -152,6 +152,24 @@ class Server:
             f"{self.base}/douyin/comment/action/?token={user.Token}&video_id={video.Id}&action_type=2&comment_id={comment.Id}"
         ), ttypes.DouyinCommentActionResponse)
 
+    def list_friends(self, user: ttypes.DouyinUserLoginResponse) -> ttypes.DouyinRelationFriendListResponse:
+        """List friends."""
+        return assert_ok(requests.get(
+            f"{self.base}/douyin/relation/friend/list/?token={user.Token}&user_id={user.UserId}"
+        ), ttypes.DouyinRelationFriendListResponse)
+
+    def message(self, user: ttypes.DouyinUserLoginResponse, friend: ttypes.DouyinUserLoginResponse, message: str):
+        """Send a message."""
+        return assert_ok(requests.post(
+            f"{self.base}/douyin/message/action/?token={user.Token}&to_user_id={friend.UserId}&action_type=1&content={message}"
+        ), ttypes.DouyinMessageActionResponse)
+
+    def list_messages(self, user: ttypes.DouyinUserLoginResponse, friend: ttypes.DouyinUserLoginResponse) -> ttypes.DouyinMessageChatResponse:
+        """List messages in a chat."""
+        return assert_ok(requests.get(
+            f"{self.base}/douyin/message/chat/?token={user.Token}&to_user_id={friend.UserId}"
+        ), ttypes.DouyinMessageChatResponse)
+
 
 def random_name():
     """Generate a random name."""
@@ -306,19 +324,22 @@ def test_video_publish(s: Server, test=None):
 def test_video_reaction(s: Server):
     """Test video reaction listing and counters."""
     def tester(users, published):
+        all_comments = []
         for i, user in enumerate(users):
             for following in published[:i]:
                 s.like(user, following)
-                s.comment(user, following,
-                          f"www {random_name()} by {user.UserId}")
+                c = s.comment(user, following,
+                              f"www {random_name()} by {user.UserId}")
+                all_comments.append([user, following, cast_ttype(
+                    c.Comment, ttypes.Comment)])
         for i, user in enumerate(users):
             own = s.list_videos(user)
             assert len(own.VideoList) == 1
             v = cast_ttype(own.VideoList[0], ttypes.Video)
             assert v.CommentCount == 10 - 1 - i
             assert v.FavoriteCount == 10 - 1 - i
-            res = s.list_comments(v)
-            comments = cast_ttype_array(res.CommentList, ttypes.Comment)
+            comments = cast_ttype_array(
+                s.list_comments(v).CommentList, ttypes.Comment)
             assert len(comments) == v.CommentCount
             commenters = []
             for comment in comments:
@@ -345,16 +366,81 @@ def test_video_reaction(s: Server):
         for i, user in enumerate(users):
             for following in published[:i]:
                 s.unlike(user, following)
+        for comment_info in all_comments:
+            s.uncomment(comment_info[0], comment_info[1], comment_info[2])
         for i, user in enumerate(users):
             own = s.list_videos(user)
             assert len(own.VideoList) == 1
             v = cast_ttype(own.VideoList[0], ttypes.Video)
             # Comment counts are not decremented on purpose.
             assert v.CommentCount == 10 - 1 - i
+            comments = cast_ttype_array(
+                s.list_comments(v).CommentList, ttypes.Comment)
+            assert len(comments) == 0
             assert v.FavoriteCount == 0
             likes = s.list_likes(user)
             assert len(likes.VideoList) == 0
     test_video_publish(s, test=tester)
+
+
+@log_test
+def test_friend_message(s: Server):
+    """Test friend listing and messages."""
+    password = "password"
+    user = s.register_user(random_name(), password)
+    friend = s.register_user(random_name(), password)
+    another = s.register_user(random_name(), password)
+
+    def mutual(a, b):
+        s.follow(a, b)
+        s.follow(b, a)
+    mutual(user, friend)
+    mutual(user, another)
+    mutual(friend, another)
+    users = [user, friend, another]
+    ids = list(map(lambda u: u.UserId, users))
+    for u in users:
+        friends = cast_ttype_array(s.list_friends(u).UserList, ttypes.User)
+        assert len(friends) == 2
+        for f in friends:
+            assert f.Id in ids
+
+    def find_friend(users, user: ttypes.DouyinUserRegisterResponse) -> ttypes.User:
+        for friend in users:
+            if friend.Id == user.UserId:
+                return friend
+        assert friend.Id == user.UserId
+
+    def assert_message(msg: ttypes.Message,
+                       user: ttypes.DouyinUserRegisterResponse,
+                       friend: ttypes.DouyinUserRegisterResponse,
+                       content: str
+                       ):
+        assert msg.FromUserId == user.UserId
+        assert msg.ToUserId == friend.UserId
+        assert msg.Content == content
+
+    for count in range(2, 30, 2):
+        msg1 = "Hello " + random_name()
+        msg2 = "Hi " + random_name()
+        s.message(user, friend, msg1)
+        friends = cast_ttype_array(s.list_friends(user).UserList, ttypes.User)
+        assert find_friend(friends, friend).Message == msg1
+        assert find_friend(friends, friend).MsgType == 1
+        assert not find_friend(friends, another).Message
+        s.message(friend, user, msg2)
+        friends = cast_ttype_array(s.list_friends(user).UserList, ttypes.User)
+        assert find_friend(friends, friend).Message == msg2
+        assert find_friend(friends, friend).MsgType == 0
+        assert not find_friend(friends, another).Message
+
+        assert len(s.list_messages(user, another).MessageList) == 0
+
+        messages = cast_ttype_array(s.list_messages(
+            user, friend).MessageList, ttypes.Message)
+        assert len(messages) == count
+        assert_message(messages[1], user, friend, msg1)
+        assert_message(messages[0], friend, user, msg2)
 
 
 if __name__ == "__main__":
@@ -376,6 +462,8 @@ if __name__ == "__main__":
         test_video_publish(s)
     if wants("reaction"):
         test_video_reaction(s)
+    if wants("message"):
+        test_friend_message(s)
 
     if len(args) != 0 and args[0] in ["-h", "--help", "help"]:
         print("Available tests:", available)
