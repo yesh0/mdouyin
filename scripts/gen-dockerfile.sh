@@ -24,23 +24,19 @@ for package in $(grep "/" "go.work" | sed -e "s#.\+/##"); do
     fi
 
     if [ "$package" = "gateway" ]; then
-        base="jrottenberg/ffmpeg:5-alpine"
-    else
-        base="alpine"
-    fi
-
-    echo "FROM ${base} AS md-${package}
-RUN adduser -D md-user
-USER md-user"
-    if [ "$package" = "gateway" ]; then
-        echo "COPY --from=builder /m/gateway/bin/gateway /
+        echo "FROM jrottenberg/ffmpeg:5-alpine AS md-${package}
+RUN adduser -D -u 1000 md-user && mkdir /storage && chown md-user /storage
+USER md-user
+COPY --from=builder /m/gateway/bin/gateway /
 EXPOSE 8000
 ENTRYPOINT []
 CMD [\"/gateway\", \"--storage\", \"/storage\"]
 "
     else
-        echo "COPY --from=builder /m/${package}/output /
-EXPOSE 3000
+        echo "FROM alpine AS md-${package}
+RUN adduser -D -u 1000 md-user
+USER md-user
+COPY --from=builder /m/${package}/output /
 CMD [\"sh\", \"/bootstrap.sh\"]
 "
     fi

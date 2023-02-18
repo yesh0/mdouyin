@@ -12,21 +12,19 @@ RUN sh scripts/for-all.sh make -B
 # Service containers
 
 FROM alpine AS md-counter
-RUN adduser -D md-user
+RUN adduser -D -u 1000 md-user
 USER md-user
 COPY --from=builder /m/counter/output /
-EXPOSE 3000
 CMD ["sh", "/bootstrap.sh"]
 
 FROM alpine AS md-feeder
-RUN adduser -D md-user
+RUN adduser -D -u 1000 md-user
 USER md-user
 COPY --from=builder /m/feeder/output /
-EXPOSE 3000
 CMD ["sh", "/bootstrap.sh"]
 
 FROM jrottenberg/ffmpeg:5-alpine AS md-gateway
-RUN adduser -D md-user
+RUN adduser -D -u 1000 md-user && mkdir /storage && chown md-user /storage
 USER md-user
 COPY --from=builder /m/gateway/bin/gateway /
 EXPOSE 8000
@@ -34,16 +32,14 @@ ENTRYPOINT []
 CMD ["/gateway", "--storage", "/storage"]
 
 FROM alpine AS md-message
-RUN adduser -D md-user
+RUN adduser -D -u 1000 md-user
 USER md-user
 COPY --from=builder /m/message/output /
-EXPOSE 3000
 CMD ["sh", "/bootstrap.sh"]
 
 FROM alpine AS md-reaction
-RUN adduser -D md-user
+RUN adduser -D -u 1000 md-user
 USER md-user
 COPY --from=builder /m/reaction/output /
-EXPOSE 3000
 CMD ["sh", "/bootstrap.sh"]
 

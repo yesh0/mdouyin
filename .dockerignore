@@ -1,0 +1,6 @@
+.git/
+idl/
+scripts/gen-*
+tests/
+
+/Makefile

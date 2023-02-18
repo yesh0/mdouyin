@@ -5,8 +5,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-
-	"github.com/cloudwego/hertz/pkg/common/hlog"
 )
 
 var ffmpegPath string
@@ -28,7 +26,6 @@ func ensureFfmpeg() error {
 func runArgs(stderr io.Writer, args ...string) error {
 	cmd := exec.Command(ffmpegPath, args...)
 	if cmd.Err != nil {
-		hlog.Error("unable to look up ffmpeg", cmd.Err)
 		return cmd.Err
 	}
 	if stderr != nil {
@@ -36,7 +33,6 @@ func runArgs(stderr io.Writer, args ...string) error {
 		cmd.Stdout = os.Stdout
 	}
 	if err := cmd.Run(); err != nil {
-		hlog.Error("ffmpeg command failed", err)
 		return err
 	}
 	return nil
@@ -47,7 +43,7 @@ func ValidateVideo(path string) error {
 	if err := runArgs(buf,
 		"-v", "error", // Only print errors
 		"-i", path, // Input
-		"-map", "0:1", "-f", "null", "-", // Pseudo output
+		"-f", "null", "-", // Pseudo output
 	); err != nil {
 		return fmt.Errorf("ffmpeg failed: %s", buf.String())
 	}
@@ -59,12 +55,10 @@ func GenerateCover(path string, output string) error {
 	if err := runArgs(buf,
 		"-v", "error", // Only print errors
 		"-i", path, // Input
-		"-vsync", "vfr", // Remove some useless frames
-
 		// Extract one scene-changing keyframe as the cover,
 		// as well as scale the output to fit into 256x256
-		"-skip_frame", "nokey", "-frames:v", "1",
-		"-vf", "select='gt(scene,0.4)',scale=w=256:h=256:force_original_aspect_ratio=decrease",
+		"-frames:v", "1", "-vf",
+		"select='eq(pict_type,I)*gt(scene,0.4)',scale=w=256:h=256:force_original_aspect_ratio=decrease",
 		"-y", output, // Overwrites
 	); err != nil {
 		return fmt.Errorf("ffmpeg failed: %s", buf.String())
@@ -76,9 +70,10 @@ func GenerateCover(path string, output string) error {
 		if err := runArgs(buf,
 			"-v", "error", // Only print errors
 			"-i", path, // Input
-			"-vsync", "vfr", // Remove some useless frames
-			"-skip_frame", "nokey", "-frames:v", "1",
-			"-vf", "scale=w=256:h=256:force_original_aspect_ratio=decrease",
+			// Extract one keyframe as the cover,
+			// as well as scale the output to fit into 256x256
+			"-frames:v", "1", "-vf",
+			"scale=w=256:h=256:force_original_aspect_ratio=decrease",
 			"-y", output, // Overwrites
 		); err != nil {
 			return fmt.Errorf("ffmpeg failed: %s", buf.String())

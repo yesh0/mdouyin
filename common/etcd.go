@@ -3,7 +3,6 @@ package common
 import (
 	"common/utils"
 	"net"
-	"os"
 
 	"github.com/cloudwego/kitex/client"
 	"github.com/cloudwego/kitex/pkg/klog"
@@ -30,19 +29,27 @@ func WithEtcdOptions(name RpcServiceName) []server.Option {
 	}
 }
 
-func WithRandomPort() server.Option {
-	var port string
-	if isRandom, ok := os.LookupEnv("ENV_MDOUYIN_RANDOM_PORT"); ok &&
-		(isRandom == "1" || isRandom == "yes" || isRandom == "true") {
-		port = ":0"
-	} else {
-		port = ":3000"
+// From https://stackoverflow.com/questions/23558425/
+func GetOutboundIP() net.IP {
+	addresses, err := net.InterfaceAddrs()
+	if err != nil {
+		klog.Fatal(err)
 	}
+	for _, addr := range addresses {
+		if ip, ok := addr.(*net.IPNet); ok && !ip.IP.IsLoopback() {
+			return ip.IP
+		}
+	}
+	klog.Fatal("no outbound ip found")
+	return nil
+}
 
-	if addr, err := net.ResolveTCPAddr("tcp", port); err != nil {
+func WithRandomPort() server.Option {
+	if addr, err := net.ResolveTCPAddr("tcp", GetOutboundIP().String()+":0"); err != nil {
 		klog.Fatal(err)
 		panic(err)
 	} else {
+		klog.Infof("listening to %v", addr)
 		return server.WithServiceAddr(addr)
 	}
 }
