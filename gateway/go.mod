@@ -14,6 +14,7 @@ require (
 	github.com/hertz-contrib/logger/zap v0.0.0-20221227100845-46a8693d7847
 	github.com/stretchr/testify v1.8.0
 	github.com/urfave/cli/v2 v2.24.3
+	golang.org/x/time v0.3.0
 	gorm.io/gorm v1.24.4
 )
 

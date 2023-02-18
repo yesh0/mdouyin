@@ -1,5 +1,9 @@
 bin/
 *.bak
+
 default.etcd/
 
 __pycache__/
+
+*.log
+*.rdb
