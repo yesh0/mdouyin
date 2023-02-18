@@ -1,7 +1,7 @@
 output/bin/CounterService:
-	./build.sh
+	sh ./build.sh
 
 run: output/bin/CounterService
-	output/bootstrap.sh
+	sh output/bootstrap.sh
 
 .PHONY: run

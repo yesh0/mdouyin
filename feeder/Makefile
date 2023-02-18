@@ -1,7 +1,7 @@
 output/bin/FeedService:
-	./build.sh
+	sh ./build.sh
 
 run: output/bin/FeedService
-	output/bootstrap.sh
+	sh output/bootstrap.sh
 
 .PHONY: run

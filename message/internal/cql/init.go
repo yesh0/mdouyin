@@ -1,6 +1,10 @@
 package cql
 
-import "github.com/gocql/gocql"
+import (
+	"common/utils"
+
+	"github.com/gocql/gocql"
+)
 
 var script = []string{
 	`-- Create a keyspace
@@ -25,7 +29,7 @@ func Init(instances ...string) error {
 	cluster.NumConns = 3
 
 	var err error
-	session, err = cluster.CreateSession()
+	session, err = utils.GetSession(cluster)
 	if err != nil {
 		return err
 	}

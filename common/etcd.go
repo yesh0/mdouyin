@@ -3,6 +3,7 @@ package common
 import (
 	"common/utils"
 	"net"
+	"os"
 
 	"github.com/cloudwego/kitex/client"
 	"github.com/cloudwego/kitex/pkg/klog"
@@ -30,8 +31,20 @@ func WithEtcdOptions(name RpcServiceName) []server.Option {
 }
 
 func WithRandomPort() server.Option {
-	addr, _ := net.ResolveTCPAddr("tcp", ":0")
-	return server.WithServiceAddr(addr)
+	var port string
+	if isRandom, ok := os.LookupEnv("ENV_MDOUYIN_RANDOM_PORT"); ok &&
+		(isRandom == "1" || isRandom == "yes" || isRandom == "true") {
+		port = ":0"
+	} else {
+		port = ":3000"
+	}
+
+	if addr, err := net.ResolveTCPAddr("tcp", port); err != nil {
+		klog.Fatal(err)
+		panic(err)
+	} else {
+		return server.WithServiceAddr(addr)
+	}
 }
 
 // Creates a new new resolver option with etcd.

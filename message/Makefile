@@ -1,7 +1,7 @@
 output/bin/MessageService:
-	./build.sh
+	sh ./build.sh
 
 run: output/bin/MessageService
-	output/bootstrap.sh
+	sh output/bootstrap.sh
 
 .PHONY: run
