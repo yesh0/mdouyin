@@ -3,11 +3,13 @@
 package core
 
 import (
+	"common"
 	"common/kitex_gen/douyin/rpc"
 	"common/utils"
 	"context"
 	"os"
 	"path"
+	"time"
 
 	core "gateway/biz/model/douyin/core"
 	"gateway/internal/cache"
@@ -106,7 +108,7 @@ func generateVideoList(ctx context.Context, info []*rpc.Video) (vs []*core.Video
 	fallback := services.FromUser(&db.UserDO{
 		Id:   0,
 		Name: "Unknown",
-	}, nil, false)
+	}, false)
 	for _, video := range info {
 		author := fallback
 		if v := authors[video.Author.Id]; v != nil {
@@ -198,6 +200,8 @@ func Publish(ctx context.Context, c *app.RequestContext) {
 			return
 		}
 
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 		r, err := services.Feed.Publish(ctx, &rpc.DouyinPublishActionRequest{
 			RequestUserId: id,
 			Video: &rpc.Video{
@@ -209,9 +213,19 @@ func Publish(ctx context.Context, c *app.RequestContext) {
 		})
 		if err != nil {
 			hlog.Warn("rpc failed", err)
+			return
 		}
 		if !utils.ErrorOk.IsCode(r.StatusCode) {
 			hlog.Warn("rpc failed", utils.ErrorCode(r.StatusCode).Error())
+			return
+		}
+
+		_, err = services.Counter.Increment(ctx, &rpc.CounterIncRequest{
+			Actions: []*rpc.Increment{{Id: id, Kind: common.KindUserWorkCount, Delta: 1}},
+		})
+		if err != nil {
+			hlog.Warn("rpc failed", err)
+			return
 		}
 	}()
 

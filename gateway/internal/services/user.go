@@ -12,27 +12,13 @@ import (
 	"strings"
 )
 
-func FromUser(u *db.UserDO, counts []*rpc.Counts, followed bool) (user *core.User) {
+func FromUser(u *db.UserDO, followed bool) (user *core.User) {
 	user = &core.User{
 		Id:       int64(u.Id),
 		Name:     u.Nickname,
 		IsFollow: followed,
 		Avatar: fmt.Sprintf("https://cravatar.cn/avatar/%x",
 			md5.Sum([]byte(strings.ToLower(u.Name)))),
-	}
-	for _, c := range counts {
-		if c.Id == u.Id {
-			for _, kind := range c.KindCounts {
-				switch kind.Kind {
-				case common.KindUserFollowerCount:
-					followers := int64(kind.Count)
-					user.FollowerCount = &followers
-				case common.KindUserFollowingCount:
-					following := int64(kind.Count)
-					user.FollowCount = &following
-				}
-			}
-		}
 	}
 	return
 }
@@ -51,15 +37,20 @@ func getIds(users []*rpc.User) []int64 {
 
 func getMappedUsers(userMap map[int64]*core.User, users []db.UserDO) map[int64]*core.User {
 	for _, user := range users {
-		userMap[user.Id] = FromUser(&user, nil, false)
+		userMap[user.Id] = FromUser(&user, false)
 	}
 	return userMap
 }
 
 func fillUserCounts(ctx context.Context, ids []int64, userMap map[int64]*core.User) error {
 	counts, err := Counter.Fetch(ctx, &rpc.CounterGetRequest{
-		Id:    ids,
-		Kinds: []int8{common.KindUserFollowerCount, common.KindUserFollowingCount},
+		Id: ids,
+		Kinds: []int8{
+			common.KindUserFollowerCount,
+			common.KindUserFollowingCount,
+			common.KindUserFavoriteCount,
+			common.KindUserWorkCount,
+		},
 	})
 	if err != nil {
 		return err
@@ -71,18 +62,26 @@ func fillUserCounts(ctx context.Context, ids []int64, userMap map[int64]*core.Us
 		if user == nil {
 			continue
 		}
-		for _, kindCount := range count.KindCounts {
-			i := int64(kindCount.Count)
-			switch kindCount.Kind {
-			case common.KindUserFollowerCount:
-				user.FollowerCount = &i
-			case common.KindUserFollowingCount:
-				user.FollowCount = &i
-			}
-		}
+		fillKindCounts(count, user)
 		cache.SetUser(id, user)
 	}
 	return nil
+}
+
+func fillKindCounts(count *rpc.Counts, user *core.User) {
+	for _, kindCount := range count.KindCounts {
+		i := int64(kindCount.Count)
+		switch kindCount.Kind {
+		case common.KindUserFollowerCount:
+			user.FollowerCount = &i
+		case common.KindUserFollowingCount:
+			user.FollowCount = &i
+		case common.KindUserFavoriteCount:
+			user.FavoriteCount = &i
+		case common.KindUserWorkCount:
+			user.WorkCount = &i
+		}
+	}
 }
 
 func fillRelation(ctx context.Context, ids []int64, user int64, userMap map[int64]*core.User) error {
@@ -121,7 +120,10 @@ func GatherUserInfoFromIds(ctx context.Context, user int64,
 	coldIds := make([]int64, 0, len(ids)/2)
 	for _, id := range ids {
 		if u := cache.GetUser(id); u != nil {
-			if !counts || (u.FollowCount != nil && u.FollowerCount != nil) {
+			if !counts || (u.FollowCount != nil &&
+				u.FollowerCount != nil &&
+				u.FavoriteCount != nil &&
+				u.WorkCount != nil) {
 				userMap[id] = u
 				continue
 			}

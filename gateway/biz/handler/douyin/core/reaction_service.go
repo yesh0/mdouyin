@@ -182,7 +182,7 @@ func Comment(ctx context.Context, c *app.RequestContext) {
 		}
 		resp.Comment = &core.Comment{
 			Id:         r.Comment.Id,
-			User:       services.FromUser(user, nil, false),
+			User:       services.FromUser(user, false),
 			Content:    r.Comment.Content,
 			CreateDate: r.Comment.CreateDate,
 		}

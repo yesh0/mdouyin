@@ -14,6 +14,8 @@ const (
 const (
 	KindUserFollowerCount  = int8(0)
 	KindUserFollowingCount = int8(1)
+	KindUserFavoriteCount  = int8(2)
+	KindUserWorkCount      = int8(3)
 )
 
 const (

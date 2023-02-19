@@ -27,7 +27,8 @@ func (s *ReactionServiceImpl) Favorite(ctx context.Context, req *rpc.DouyinFavor
 		resp.StatusCode = int32(db.Favorite(req.RequestUserId, req.VideoId))
 		if resp.StatusCode == 0 {
 			cache.Favorite(ctx, req.RequestUserId, req.VideoId)
-			resp.StatusCode = int32(incrementCount(ctx, common.KindVideoFavoriteCount, req.VideoId, 1))
+			resp.StatusCode = int32(incrementCount(ctx, common.KindVideoFavoriteCount,
+				req.VideoId, req.RequestUserId, 1))
 		}
 	case 2: // Unfavorite
 		if cache.IsFavorite(ctx, req.RequestUserId, req.VideoId) == 0 {
@@ -37,7 +38,8 @@ func (s *ReactionServiceImpl) Favorite(ctx context.Context, req *rpc.DouyinFavor
 		resp.StatusCode = int32(db.Unfavorite(req.RequestUserId, req.VideoId))
 		if resp.StatusCode == 0 {
 			cache.Unfavorite(ctx, req.RequestUserId, req.VideoId)
-			resp.StatusCode = int32(incrementCount(ctx, common.KindVideoFavoriteCount, req.VideoId, -1))
+			resp.StatusCode = int32(incrementCount(ctx, common.KindVideoFavoriteCount,
+				req.VideoId, req.RequestUserId, -1))
 		}
 	default:
 		resp.StatusCode = int32(utils.ErrorWrongParameter)
@@ -45,15 +47,20 @@ func (s *ReactionServiceImpl) Favorite(ctx context.Context, req *rpc.DouyinFavor
 	return
 }
 
-func incrementCount(ctx context.Context, kind int8, video int64, inc int16) utils.ErrorCode {
+func incrementCount(ctx context.Context, kind int8, video int64, user int64, inc int16) utils.ErrorCode {
+	var actions []*rpc.Increment
+
+	if kind == common.KindVideoFavoriteCount {
+		actions = []*rpc.Increment{
+			{Id: video, Kind: common.KindVideoFavoriteCount, Delta: inc},
+			{Id: user, Kind: common.KindUserFavoriteCount, Delta: inc},
+		}
+	} else {
+		actions = []*rpc.Increment{{Id: video, Kind: kind, Delta: inc}}
+	}
+
 	_, err := services.Counter.Increment(ctx, &rpc.CounterIncRequest{
-		Actions: []*rpc.Increment{
-			{
-				Id:    video,
-				Kind:  kind,
-				Delta: inc,
-			},
-		},
+		Actions: actions,
 	})
 	if err != nil {
 		return utils.ErrorRpcTimeout
@@ -129,7 +136,8 @@ func (s *ReactionServiceImpl) Comment(ctx context.Context, req *rpc.DouyinCommen
 			resp.StatusCode = int32(code)
 			return
 		}
-		resp.StatusCode = int32(incrementCount(ctx, common.KindVideoCommentCount, req.VideoId, 1))
+		resp.StatusCode = int32(incrementCount(ctx, common.KindVideoCommentCount,
+			req.VideoId, req.RequestUserId, 1))
 	case 2: // Removes.
 		if req.CommentId == nil || *req.CommentId == 0 {
 			resp.StatusCode = int32(utils.ErrorWrongInputFormat)

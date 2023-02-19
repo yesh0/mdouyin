@@ -52,6 +52,8 @@ struct User {
     6: string Avatar (api.body="avatar", api.query="avatar", api.form="avatar") // 用户头像Url
     7: optional string Message (api.body="message", api.query="message", api.form="message") // 和该好友的最新聊天消息
     8: optional i64 MsgType (api.body="msg_type", api.query="msg_type", api.form="msg_type") // message消息的类型，0 => 当前请求用户接收的消息， 1 => 当前请求用户发送的消息
+    9: optional i64 FavoriteCount (api.body="favorite_count", api.query="favorite_count", api.form="favorite_count") // 被点赞总数
+    10: optional i64 WorkCount (api.body="work_count", api.query="work_count", api.form="work_count") // 作品总数
 }
 struct Comment {
     1: i64 Id (api.body="id", api.query="id", api.form="id") // 视频评论id
