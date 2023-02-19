@@ -194,7 +194,7 @@ class Server:
     def list_messages(self, user: ttypes.DouyinUserLoginResponse, friend: ttypes.DouyinUserLoginResponse) -> ttypes.DouyinMessageChatResponse:
         """List messages in a chat."""
         return assert_ok(requests.get(
-            f"{self.base}/douyin/message/chat/?token={user.Token}&to_user_id={friend.UserId}"
+            f"{self.base}/douyin/message/chat/?token={user.Token}&to_user_id={friend.UserId}&pre_msg_time=0"
         ), ttypes.DouyinMessageChatResponse)
 
 
@@ -230,7 +230,7 @@ def log_test(func):
         try:
             result = func(*args, **kwargs)
         except AssertionError as e:
-            print(last_response)
+            print(last_response, last_response.text)
             raise e
         indent -= 1
         print(
@@ -451,7 +451,7 @@ def test_friend_message(s: Server):
         assert msg.ToUserId == friend.UserId
         assert msg.Content == content
 
-    for count in range(2, 30, 2):
+    for count in range(0, 30, 2):
         msg1 = "Hello " + random_name()
         msg2 = "Hi " + random_name()
         s.message(user, friend, msg1)
@@ -469,9 +469,9 @@ def test_friend_message(s: Server):
 
         messages = cast_ttype_array(s.list_messages(
             user, friend).MessageList, ttypes.Message)
-        assert len(messages) == count
-        assert_message(messages[1], user, friend, msg1)
-        assert_message(messages[0], friend, user, msg2)
+        assert len(messages) == count+2
+        assert_message(messages[count+0], user, friend, msg1)
+        assert_message(messages[count+1], friend, user, msg2)
 
 
 @log_test
@@ -533,7 +533,7 @@ if __name__ == "__main__":
     def wants(s: str):
         available.append(s)
         return len(args) == 0 or s in args
-    s = Server("http://101.43.176.192:8000")
+    s = Server("http://127.0.0.1:8000")
 
     if len(args) > 0 and args[0] == "-v":
         verbose = True

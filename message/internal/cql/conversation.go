@@ -34,9 +34,11 @@ func scanMessages(scanner gocql.Scanner, user int64, friend int64) []*rpc.Messag
 		if err := scanner.Scan(&id, &status, &message); err != nil {
 			continue
 		}
+		created := snowy.Time(id).UnixMilli()
 		msg := &rpc.Message{
-			Id:      id,
-			Content: message,
+			Id:         id,
+			Content:    message,
+			CreateTime: &created,
 		}
 		if (status & 1) == 0 {
 			msg.FromUserId, msg.ToUserId = user, friend
@@ -63,13 +65,6 @@ func ListMessages(user int64, friend int64, after int64, limit int) []*rpc.Messa
 
 	messages := scanMessages(scanner, user, friend)
 
-	return reversed(messages)
-}
-
-func reversed(messages []*rpc.Message) []*rpc.Message {
-	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
-		messages[i], messages[j] = messages[j], messages[i]
-	}
 	return messages
 }
 
