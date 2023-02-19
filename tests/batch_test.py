@@ -240,6 +240,7 @@ def test_relation(s: Server, test=None):
                 s.user_info(me).User,
                 ttypes.User
             )
+            print(u, u.FollowCount, u.FollowerCount)
             assert u.FollowerCount == j + 1
             assert u.FollowCount == i
     if test != None:
@@ -293,8 +294,8 @@ def test_video_publish(s: Server, test=None):
             title = "CC Ink Stamp Animation " + random_name()
             s.publish(user, "./cc_ink_stamp_animation_cc0.mp4", title)
             titles.append(title)
-        # The server needs some time to generate the cover images.
-        time.sleep(2)
+        # The server needs some time to generate the cover images, especially on low-end ones.
+        time.sleep(10)
         assert len(s.feed(None).VideoList) >= 10
         published = []
         for user, title in zip(users, titles):
@@ -443,6 +444,55 @@ def test_friend_message(s: Server):
         assert_message(messages[0], friend, user, msg2)
 
 
+@log_test
+def generate_data(s: Server):
+    """Generate test data."""
+    try:
+        me = s.login("mdouyin", "123456")
+    except AssertionError:
+        me = s.register_user("mdouyin", "123456")
+
+    def generate(users):
+        # Relation
+        print("relation")
+        for user in users:
+            s.follow(me, user)
+        for i in range(0, 10, 2):
+            s.follow(users[i], me)
+        # Videos
+        print("videos")
+        file = "./cc_ink_stamp_animation_cc0.mp4"
+        s.publish(me, file, "All Hail CC0")
+        videos = [
+            "./pexels-karolina-grabowska-7716441.mp4",
+            "./pexels-mart-production-7565884.mp4",
+            "./pexels-roman-odintsov-6609493.mp4",
+            "./Pexels Videos 1943483.mp4",
+            "./Pexels Videos 2421545.mp4",
+        ]
+        for i, user in enumerate(users):
+            s.publish(
+                user, videos[i % 5], "CC0 Video: " + videos[i % 5] + random_name())
+        print("reaction")
+        time.sleep(10)
+        # Reaction
+        for i, user in enumerate(users):
+            if len(s.list_videos(user).VideoList) == 0:
+                print("sleeping")
+                time.sleep(3)
+                continue
+            video = cast_ttype(s.list_videos(user).VideoList[0], ttypes.Video)
+            s.like(me, video)
+            s.comment(me, video, "Good work! " + videos[i % 5])
+        # Message
+        print("message")
+        s.message(me, users[0], "wwww")
+        s.message(users[0], me, "Hello There!")
+        s.message(me, users[2], "test message")
+        exit(0)
+    test_relation(s, generate)
+
+
 if __name__ == "__main__":
     args = sys.argv[1:]
     available = []
@@ -464,6 +514,9 @@ if __name__ == "__main__":
         test_video_reaction(s)
     if wants("message"):
         test_friend_message(s)
+
+    if wants("generate-test-user") and len(args) == 1:
+        generate_data(s)
 
     if len(args) != 0 and args[0] in ["-h", "--help", "help"]:
         print("Available tests:", available)

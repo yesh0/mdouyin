@@ -51,8 +51,6 @@ func getIds(users []*rpc.User) []int64 {
 
 func getMappedUsers(userMap map[int64]*core.User, users []db.UserDO) map[int64]*core.User {
 	for _, user := range users {
-		converted := FromUser(&user, nil, false)
-		cache.SetUser(user.Id, converted)
 		userMap[user.Id] = FromUser(&user, nil, false)
 	}
 	return userMap
@@ -69,18 +67,20 @@ func fillUserCounts(ctx context.Context, ids []int64, userMap map[int64]*core.Us
 
 	for _, count := range counts.Counters {
 		id := count.Id
+		user := userMap[id]
+		if user == nil {
+			continue
+		}
 		for _, kindCount := range count.KindCounts {
-			if userMap[id] == nil {
-				continue
-			}
 			i := int64(kindCount.Count)
 			switch kindCount.Kind {
 			case common.KindUserFollowerCount:
-				userMap[id].FollowerCount = &i
+				user.FollowerCount = &i
 			case common.KindUserFollowingCount:
-				userMap[id].FollowCount = &i
+				user.FollowCount = &i
 			}
 		}
+		cache.SetUser(id, user)
 	}
 	return nil
 }
@@ -121,10 +121,12 @@ func GatherUserInfoFromIds(ctx context.Context, user int64,
 	coldIds := make([]int64, 0, len(ids)/2)
 	for _, id := range ids {
 		if u := cache.GetUser(id); u != nil {
-			userMap[id] = u
-		} else {
-			coldIds = append(coldIds, id)
+			if !counts || (u.FollowCount != nil && u.FollowerCount != nil) {
+				userMap[id] = u
+				continue
+			}
 		}
+		coldIds = append(coldIds, id)
 	}
 
 	basicUsers, err := db.FindUsersByIds(coldIds)
@@ -138,6 +140,8 @@ func GatherUserInfoFromIds(ctx context.Context, user int64,
 		if err := fillUserCounts(ctx, coldIds, userMap); err != nil {
 			return nil, err
 		}
+	} else {
+		fillCacheIfMissing(coldIds, userMap)
 	}
 
 	if users == nil || (follow && user != 0) {
@@ -156,4 +160,12 @@ func GatherUserInfoFromIds(ctx context.Context, user int64,
 	}
 
 	return userMap, nil
+}
+
+func fillCacheIfMissing(ids []int64, userMap map[int64]*core.User) {
+	for _, id := range ids {
+		if cache.GetUser(id) == nil {
+			cache.SetUser(id, userMap[id])
+		}
+	}
 }
