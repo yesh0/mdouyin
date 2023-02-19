@@ -4,7 +4,6 @@ package core
 
 import (
 	"common/kitex_gen/douyin/rpc"
-	"common/snowy"
 	"common/utils"
 	"context"
 
@@ -42,6 +41,7 @@ func Chat(ctx context.Context, c *app.RequestContext) {
 	r, err := services.Message.Chat(ctx, &rpc.DouyinMessageChatRequest{
 		RequestUserId: user,
 		ToUserId:      req.ToUserId,
+		PreMsgTime:    req.PreMsgTime,
 	})
 	if err != nil {
 		utils.ErrorRpcTimeout.Write(c)
@@ -54,13 +54,12 @@ func Chat(ctx context.Context, c *app.RequestContext) {
 	resp := new(core.DouyinMessageChatResponse)
 	resp.MessageList = make([]*core.Message, 0, len(r.MessageList))
 	for _, msg := range r.MessageList {
-		t := snowy.Time(msg.Id).UnixMilli()
 		resp.MessageList = append(resp.MessageList, &core.Message{
 			Id:         msg.Id,
 			FromUserId: msg.FromUserId,
 			ToUserId:   msg.ToUserId,
 			Content:    msg.Content,
-			CreateTime: &t,
+			CreateTime: msg.CreateTime,
 		})
 	}
 

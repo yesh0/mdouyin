@@ -451,6 +451,7 @@ func (p *LatestMessageResponse) Field1DeepEqual(src []*Message) bool {
 type DouyinMessageChatRequest struct {
 	RequestUserId int64 `thrift:"RequestUserId,1" frugal:"1,default,i64" json:"RequestUserId"`
 	ToUserId      int64 `thrift:"ToUserId,2" frugal:"2,default,i64" json:"ToUserId"`
+	PreMsgTime    int64 `thrift:"PreMsgTime,3" frugal:"3,default,i64" json:"PreMsgTime"`
 }
 
 func NewDouyinMessageChatRequest() *DouyinMessageChatRequest {
@@ -468,16 +469,24 @@ func (p *DouyinMessageChatRequest) GetRequestUserId() (v int64) {
 func (p *DouyinMessageChatRequest) GetToUserId() (v int64) {
 	return p.ToUserId
 }
+
+func (p *DouyinMessageChatRequest) GetPreMsgTime() (v int64) {
+	return p.PreMsgTime
+}
 func (p *DouyinMessageChatRequest) SetRequestUserId(val int64) {
 	p.RequestUserId = val
 }
 func (p *DouyinMessageChatRequest) SetToUserId(val int64) {
 	p.ToUserId = val
 }
+func (p *DouyinMessageChatRequest) SetPreMsgTime(val int64) {
+	p.PreMsgTime = val
+}
 
 var fieldIDToName_DouyinMessageChatRequest = map[int16]string{
 	1: "RequestUserId",
 	2: "ToUserId",
+	3: "PreMsgTime",
 }
 
 func (p *DouyinMessageChatRequest) Read(iprot thrift.TProtocol) (err error) {
@@ -512,6 +521,16 @@ func (p *DouyinMessageChatRequest) Read(iprot thrift.TProtocol) (err error) {
 		case 2:
 			if fieldTypeId == thrift.I64 {
 				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField3(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else {
@@ -567,6 +586,15 @@ func (p *DouyinMessageChatRequest) ReadField2(iprot thrift.TProtocol) error {
 	return nil
 }
 
+func (p *DouyinMessageChatRequest) ReadField3(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		p.PreMsgTime = v
+	}
+	return nil
+}
+
 func (p *DouyinMessageChatRequest) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
 	if err = oprot.WriteStructBegin("DouyinMessageChatRequest"); err != nil {
@@ -579,6 +607,10 @@ func (p *DouyinMessageChatRequest) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField2(oprot); err != nil {
 			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
 			goto WriteFieldError
 		}
 
@@ -634,6 +666,23 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
 }
 
+func (p *DouyinMessageChatRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("PreMsgTime", thrift.I64, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.PreMsgTime); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
 func (p *DouyinMessageChatRequest) String() string {
 	if p == nil {
 		return "<nil>"
@@ -653,6 +702,9 @@ func (p *DouyinMessageChatRequest) DeepEqual(ano *DouyinMessageChatRequest) bool
 	if !p.Field2DeepEqual(ano.ToUserId) {
 		return false
 	}
+	if !p.Field3DeepEqual(ano.PreMsgTime) {
+		return false
+	}
 	return true
 }
 
@@ -666,6 +718,13 @@ func (p *DouyinMessageChatRequest) Field1DeepEqual(src int64) bool {
 func (p *DouyinMessageChatRequest) Field2DeepEqual(src int64) bool {
 
 	if p.ToUserId != src {
+		return false
+	}
+	return true
+}
+func (p *DouyinMessageChatRequest) Field3DeepEqual(src int64) bool {
+
+	if p.PreMsgTime != src {
 		return false
 	}
 	return true
@@ -995,11 +1054,11 @@ func (p *DouyinMessageChatResponse) Field3DeepEqual(src []*Message) bool {
 }
 
 type Message struct {
-	Id         int64   `thrift:"Id,1" frugal:"1,default,i64" json:"Id"`
-	ToUserId   int64   `thrift:"ToUserId,2" frugal:"2,default,i64" json:"ToUserId"`
-	FromUserId int64   `thrift:"FromUserId,3" frugal:"3,default,i64" json:"FromUserId"`
-	Content    string  `thrift:"Content,4" frugal:"4,default,string" json:"Content"`
-	CreateTime *string `thrift:"CreateTime,5,optional" frugal:"5,optional,string" json:"CreateTime,omitempty"`
+	Id         int64  `thrift:"Id,1" frugal:"1,default,i64" json:"Id"`
+	ToUserId   int64  `thrift:"ToUserId,2" frugal:"2,default,i64" json:"ToUserId"`
+	FromUserId int64  `thrift:"FromUserId,3" frugal:"3,default,i64" json:"FromUserId"`
+	Content    string `thrift:"Content,4" frugal:"4,default,string" json:"Content"`
+	CreateTime *int64 `thrift:"CreateTime,5,optional" frugal:"5,optional,i64" json:"CreateTime,omitempty"`
 }
 
 func NewMessage() *Message {
@@ -1026,9 +1085,9 @@ func (p *Message) GetContent() (v string) {
 	return p.Content
 }
 
-var Message_CreateTime_DEFAULT string
+var Message_CreateTime_DEFAULT int64
 
-func (p *Message) GetCreateTime() (v string) {
+func (p *Message) GetCreateTime() (v int64) {
 	if !p.IsSetCreateTime() {
 		return Message_CreateTime_DEFAULT
 	}
@@ -1046,7 +1105,7 @@ func (p *Message) SetFromUserId(val int64) {
 func (p *Message) SetContent(val string) {
 	p.Content = val
 }
-func (p *Message) SetCreateTime(val *string) {
+func (p *Message) SetCreateTime(val *int64) {
 	p.CreateTime = val
 }
 
@@ -1122,7 +1181,7 @@ func (p *Message) Read(iprot thrift.TProtocol) (err error) {
 				}
 			}
 		case 5:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.I64 {
 				if err = p.ReadField5(iprot); err != nil {
 					goto ReadFieldError
 				}
@@ -1198,7 +1257,7 @@ func (p *Message) ReadField4(iprot thrift.TProtocol) error {
 }
 
 func (p *Message) ReadField5(iprot thrift.TProtocol) error {
-	if v, err := iprot.ReadString(); err != nil {
+	if v, err := iprot.ReadI64(); err != nil {
 		return err
 	} else {
 		p.CreateTime = &v
@@ -1321,10 +1380,10 @@ WriteFieldEndError:
 
 func (p *Message) writeField5(oprot thrift.TProtocol) (err error) {
 	if p.IsSetCreateTime() {
-		if err = oprot.WriteFieldBegin("CreateTime", thrift.STRING, 5); err != nil {
+		if err = oprot.WriteFieldBegin("CreateTime", thrift.I64, 5); err != nil {
 			goto WriteFieldBeginError
 		}
-		if err := oprot.WriteString(*p.CreateTime); err != nil {
+		if err := oprot.WriteI64(*p.CreateTime); err != nil {
 			return err
 		}
 		if err = oprot.WriteFieldEnd(); err != nil {
@@ -1397,14 +1456,14 @@ func (p *Message) Field4DeepEqual(src string) bool {
 	}
 	return true
 }
-func (p *Message) Field5DeepEqual(src *string) bool {
+func (p *Message) Field5DeepEqual(src *int64) bool {
 
 	if p.CreateTime == src {
 		return true
 	} else if p.CreateTime == nil || src == nil {
 		return false
 	}
-	if strings.Compare(*p.CreateTime, *src) != 0 {
+	if *p.CreateTime != *src {
 		return false
 	}
 	return true

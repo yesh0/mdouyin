@@ -14,7 +14,7 @@ import (
 func TestConversation(t *testing.T) {
 	me := snowy.ID()
 	friend := snowy.ID()
-	assert.Empty(t, cql.ListMessages(me, friend, 10))
+	assert.Empty(t, cql.ListMessages(me, friend, 0, 10))
 
 	assert.Equal(t, utils.ErrorOk, cql.Send(me, friend, "Hello"))
 	assert.Equal(t, utils.ErrorOk, cql.Send(friend, me, "Hi"))
@@ -31,8 +31,8 @@ func TestConversation(t *testing.T) {
 		assert.Equal(t, friend, messages[1].ToUserId)
 		assert.Nil(t, messages[1].CreateTime)
 	}
-	check(cql.ListMessages(me, friend, 10))
-	check(cql.ListMessages(friend, me, 10))
+	check(cql.ListMessages(me, friend, 0, 10))
+	check(cql.ListMessages(friend, me, 0, 10))
 
 	message := cql.LatestMessages(context.Background(), me, []int64{friend})
 	assert.Len(t, message, 1)

@@ -13,7 +13,7 @@ type MessageServiceImpl struct{}
 // Chat implements the MessageServiceImpl interface.
 func (s *MessageServiceImpl) Chat(ctx context.Context, req *rpc.DouyinMessageChatRequest) (resp *rpc.DouyinMessageChatResponse, err error) {
 	resp = rpc.NewDouyinMessageChatResponse()
-	resp.MessageList = cql.ListMessages(req.RequestUserId, req.ToUserId, 300)
+	resp.MessageList = cql.ListMessages(req.RequestUserId, req.ToUserId, req.PreMsgTime, 30)
 	return
 }
 

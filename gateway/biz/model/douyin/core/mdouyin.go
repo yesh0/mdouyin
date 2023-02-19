@@ -9,14 +9,14 @@ import (
 )
 
 type Video struct {
-	Id            int64  `thrift:"Id,1" form:"id" json:"id" query:"id"`
+	Id            int64  `thrift:"Id,1" form:"id" form:"id" json:"id" query:"id"`
 	Author        *User  `thrift:"Author,2" form:"author" json:"author" query:"author"`
 	PlayUrl       string `thrift:"PlayUrl,3" form:"play_url" json:"play_url" query:"play_url"`
-	CoverUrl      string `thrift:"CoverUrl,4" form:"cover_url" form:"cover_url" json:"cover_url" query:"cover_url"`
+	CoverUrl      string `thrift:"CoverUrl,4" form:"cover_url" json:"cover_url" query:"cover_url"`
 	FavoriteCount int64  `thrift:"FavoriteCount,5" form:"favorite_count" json:"favorite_count" query:"favorite_count"`
 	CommentCount  int64  `thrift:"CommentCount,6" form:"comment_count" json:"comment_count" query:"comment_count"`
-	IsFavorite    bool   `thrift:"IsFavorite,7" form:"is_favorite" form:"is_favorite" json:"is_favorite" query:"is_favorite"`
-	Title         string `thrift:"Title,8" form:"title" form:"title" json:"title" query:"title"`
+	IsFavorite    bool   `thrift:"IsFavorite,7" form:"is_favorite" json:"is_favorite" query:"is_favorite"`
+	Title         string `thrift:"Title,8" form:"title" json:"title" query:"title"`
 }
 
 func NewVideo() *Video {
@@ -476,16 +476,19 @@ func (p *Video) String() string {
 }
 
 type User struct {
-	Id            int64   `thrift:"Id,1" form:"id" json:"id" query:"id"`
-	Name          string  `thrift:"Name,2" form:"name" form:"name" json:"name" query:"name"`
-	FollowCount   *int64  `thrift:"FollowCount,3,optional" form:"follow_count" json:"follow_count,omitempty" query:"follow_count"`
-	FollowerCount *int64  `thrift:"FollowerCount,4,optional" form:"follower_count" json:"follower_count,omitempty" query:"follower_count"`
-	IsFollow      bool    `thrift:"IsFollow,5" form:"is_follow" json:"is_follow" query:"is_follow"`
-	Avatar        string  `thrift:"Avatar,6" form:"avatar" json:"avatar" query:"avatar"`
-	Message       *string `thrift:"Message,7,optional" form:"message" form:"message" json:"message,omitempty" query:"message"`
-	MsgType       *int64  `thrift:"MsgType,8,optional" form:"msg_type" json:"msg_type,omitempty" query:"msg_type"`
-	FavoriteCount *int64  `thrift:"FavoriteCount,9,optional" form:"favorite_count" json:"favorite_count,omitempty" query:"favorite_count"`
-	WorkCount     *int64  `thrift:"WorkCount,10,optional" form:"work_count" json:"work_count,omitempty" query:"work_count"`
+	Id              int64   `thrift:"Id,1" form:"id" form:"id" json:"id" query:"id"`
+	Name            string  `thrift:"Name,2" form:"name" json:"name" query:"name"`
+	FollowCount     *int64  `thrift:"FollowCount,3,optional" form:"follow_count" json:"follow_count,omitempty" query:"follow_count"`
+	FollowerCount   *int64  `thrift:"FollowerCount,4,optional" form:"follower_count" json:"follower_count,omitempty" query:"follower_count"`
+	IsFollow        bool    `thrift:"IsFollow,5" form:"is_follow" json:"is_follow" query:"is_follow"`
+	Avatar          string  `thrift:"Avatar,6" form:"avatar" form:"avatar" json:"avatar" query:"avatar"`
+	Message         *string `thrift:"Message,7,optional" form:"message" json:"message,omitempty" query:"message"`
+	MsgType         *int64  `thrift:"MsgType,8,optional" form:"msg_type" json:"msg_type,omitempty" query:"msg_type"`
+	FavoriteCount   *int64  `thrift:"FavoriteCount,9,optional" form:"favorite_count" json:"favorite_count,omitempty" query:"favorite_count"`
+	WorkCount       *int64  `thrift:"WorkCount,10,optional" form:"work_count" json:"work_count,omitempty" query:"work_count"`
+	TotalFavorited  *int64  `thrift:"TotalFavorited,11,optional" form:"total_favorited" form:"total_favorited" json:"total_favorited,omitempty" query:"total_favorited"`
+	BackgroundImage *string `thrift:"BackgroundImage,12,optional" form:"background_image" form:"background_image" json:"background_image,omitempty" query:"background_image"`
+	Signature       *string `thrift:"Signature,13,optional" form:"signature" json:"signature,omitempty" query:"signature"`
 }
 
 func NewUser() *User {
@@ -562,6 +565,33 @@ func (p *User) GetWorkCount() (v int64) {
 	return *p.WorkCount
 }
 
+var User_TotalFavorited_DEFAULT int64
+
+func (p *User) GetTotalFavorited() (v int64) {
+	if !p.IsSetTotalFavorited() {
+		return User_TotalFavorited_DEFAULT
+	}
+	return *p.TotalFavorited
+}
+
+var User_BackgroundImage_DEFAULT string
+
+func (p *User) GetBackgroundImage() (v string) {
+	if !p.IsSetBackgroundImage() {
+		return User_BackgroundImage_DEFAULT
+	}
+	return *p.BackgroundImage
+}
+
+var User_Signature_DEFAULT string
+
+func (p *User) GetSignature() (v string) {
+	if !p.IsSetSignature() {
+		return User_Signature_DEFAULT
+	}
+	return *p.Signature
+}
+
 var fieldIDToName_User = map[int16]string{
 	1:  "Id",
 	2:  "Name",
@@ -573,6 +603,9 @@ var fieldIDToName_User = map[int16]string{
 	8:  "MsgType",
 	9:  "FavoriteCount",
 	10: "WorkCount",
+	11: "TotalFavorited",
+	12: "BackgroundImage",
+	13: "Signature",
 }
 
 func (p *User) IsSetFollowCount() bool {
@@ -597,6 +630,18 @@ func (p *User) IsSetFavoriteCount() bool {
 
 func (p *User) IsSetWorkCount() bool {
 	return p.WorkCount != nil
+}
+
+func (p *User) IsSetTotalFavorited() bool {
+	return p.TotalFavorited != nil
+}
+
+func (p *User) IsSetBackgroundImage() bool {
+	return p.BackgroundImage != nil
+}
+
+func (p *User) IsSetSignature() bool {
+	return p.Signature != nil
 }
 
 func (p *User) Read(iprot thrift.TProtocol) (err error) {
@@ -711,6 +756,36 @@ func (p *User) Read(iprot thrift.TProtocol) (err error) {
 		case 10:
 			if fieldTypeId == thrift.I64 {
 				if err = p.ReadField10(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 11:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField11(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 12:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField12(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 13:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField13(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else {
@@ -838,6 +913,33 @@ func (p *User) ReadField10(iprot thrift.TProtocol) error {
 	return nil
 }
 
+func (p *User) ReadField11(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		p.TotalFavorited = &v
+	}
+	return nil
+}
+
+func (p *User) ReadField12(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		p.BackgroundImage = &v
+	}
+	return nil
+}
+
+func (p *User) ReadField13(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		p.Signature = &v
+	}
+	return nil
+}
+
 func (p *User) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
 	if err = oprot.WriteStructBegin("User"); err != nil {
@@ -882,6 +984,18 @@ func (p *User) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField10(oprot); err != nil {
 			fieldId = 10
+			goto WriteFieldError
+		}
+		if err = p.writeField11(oprot); err != nil {
+			fieldId = 11
+			goto WriteFieldError
+		}
+		if err = p.writeField12(oprot); err != nil {
+			fieldId = 12
+			goto WriteFieldError
+		}
+		if err = p.writeField13(oprot); err != nil {
+			fieldId = 13
 			goto WriteFieldError
 		}
 
@@ -1083,6 +1197,63 @@ WriteFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 10 begin error: ", p), err)
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 10 end error: ", p), err)
+}
+
+func (p *User) writeField11(oprot thrift.TProtocol) (err error) {
+	if p.IsSetTotalFavorited() {
+		if err = oprot.WriteFieldBegin("TotalFavorited", thrift.I64, 11); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteI64(*p.TotalFavorited); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 11 end error: ", p), err)
+}
+
+func (p *User) writeField12(oprot thrift.TProtocol) (err error) {
+	if p.IsSetBackgroundImage() {
+		if err = oprot.WriteFieldBegin("BackgroundImage", thrift.STRING, 12); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.BackgroundImage); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 12 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 12 end error: ", p), err)
+}
+
+func (p *User) writeField13(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSignature() {
+		if err = oprot.WriteFieldBegin("Signature", thrift.STRING, 13); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.Signature); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 13 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 13 end error: ", p), err)
 }
 
 func (p *User) String() string {
@@ -2081,9 +2252,9 @@ func (p *DouyinUserRegisterRequest) String() string {
 
 type DouyinUserRegisterResponse struct {
 	StatusCode int32   `thrift:"StatusCode,1" form:"status_code" json:"status_code" query:"status_code"`
-	StatusMsg  *string `thrift:"StatusMsg,2,optional" form:"status_msg" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
+	StatusMsg  *string `thrift:"StatusMsg,2,optional" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
 	UserId     int64   `thrift:"UserId,3" form:"user_id" json:"user_id" query:"user_id"`
-	Token      string  `thrift:"Token,4" form:"token" form:"token" json:"token" query:"token"`
+	Token      string  `thrift:"Token,4" form:"token" json:"token" query:"token"`
 }
 
 func NewDouyinUserRegisterResponse() *DouyinUserRegisterResponse {
@@ -2549,7 +2720,7 @@ func (p *DouyinUserLoginRequest) String() string {
 }
 
 type DouyinUserLoginResponse struct {
-	StatusCode int32   `thrift:"StatusCode,1" form:"status_code" form:"status_code" json:"status_code" query:"status_code"`
+	StatusCode int32   `thrift:"StatusCode,1" form:"status_code" json:"status_code" query:"status_code"`
 	StatusMsg  *string `thrift:"StatusMsg,2,optional" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
 	UserId     int64   `thrift:"UserId,3" form:"user_id" json:"user_id" query:"user_id"`
 	Token      string  `thrift:"Token,4" form:"token" json:"token" query:"token"`
@@ -3020,7 +3191,7 @@ func (p *DouyinUserRequest) String() string {
 type DouyinUserResponse struct {
 	StatusCode int32   `thrift:"StatusCode,1" form:"status_code" json:"status_code" query:"status_code"`
 	StatusMsg  *string `thrift:"StatusMsg,2,optional" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
-	User       *User   `thrift:"User,3" form:"user" json:"user" query:"user"`
+	User       *User   `thrift:"User,3" form:"user" form:"user" json:"user" query:"user"`
 }
 
 func NewDouyinUserResponse() *DouyinUserResponse {
@@ -3267,8 +3438,8 @@ func (p *DouyinUserResponse) String() string {
 
 type DouyinPublishActionRequest struct {
 	Token string `thrift:"Token,1" form:"token" json:"token" query:"token"`
-	Data  []byte `thrift:"Data,2" form:"data" json:"data" query:"data"`
-	Title string `thrift:"Title,3" form:"title" json:"title" query:"title"`
+	Data  []byte `thrift:"Data,2" form:"data" form:"data" json:"data" query:"data"`
+	Title string `thrift:"Title,3" form:"title" form:"title" json:"title" query:"title"`
 }
 
 func NewDouyinPublishActionRequest() *DouyinPublishActionRequest {
@@ -3495,7 +3666,7 @@ func (p *DouyinPublishActionRequest) String() string {
 }
 
 type DouyinPublishActionResponse struct {
-	StatusCode int32   `thrift:"StatusCode,1" form:"status_code" form:"status_code" json:"status_code" query:"status_code"`
+	StatusCode int32   `thrift:"StatusCode,1" form:"status_code" json:"status_code" query:"status_code"`
 	StatusMsg  *string `thrift:"StatusMsg,2,optional" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
 }
 
@@ -3690,7 +3861,7 @@ func (p *DouyinPublishActionResponse) String() string {
 
 type DouyinPublishListRequest struct {
 	UserId int64  `thrift:"UserId,1" form:"user_id" json:"user_id" query:"user_id"`
-	Token  string `thrift:"Token,2" form:"token" json:"token" query:"token"`
+	Token  string `thrift:"Token,2" form:"token" form:"token" json:"token" query:"token"`
 }
 
 func NewDouyinPublishListRequest() *DouyinPublishListRequest {
@@ -3873,7 +4044,7 @@ func (p *DouyinPublishListRequest) String() string {
 
 type DouyinPublishListResponse struct {
 	StatusCode int32    `thrift:"StatusCode,1" form:"status_code" json:"status_code" query:"status_code"`
-	StatusMsg  *string  `thrift:"StatusMsg,2,optional" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
+	StatusMsg  *string  `thrift:"StatusMsg,2,optional" form:"status_msg" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
 	VideoList  []*Video `thrift:"VideoList,3" form:"video_list" json:"video_list" query:"video_list"`
 }
 
@@ -4132,7 +4303,7 @@ func (p *DouyinPublishListResponse) String() string {
 
 type DouyinFavoriteActionRequest struct {
 	Token      string `thrift:"Token,1" form:"token" json:"token" query:"token"`
-	VideoId    int64  `thrift:"VideoId,2" form:"video_id" form:"video_id" json:"video_id" query:"video_id"`
+	VideoId    int64  `thrift:"VideoId,2" form:"video_id" json:"video_id" query:"video_id"`
 	ActionType int32  `thrift:"ActionType,3" form:"action_type" json:"action_type" query:"action_type"`
 }
 
@@ -4360,8 +4531,8 @@ func (p *DouyinFavoriteActionRequest) String() string {
 }
 
 type DouyinFavoriteActionResponse struct {
-	StatusCode int32   `thrift:"StatusCode,1" form:"status_code" form:"status_code" json:"status_code" query:"status_code"`
-	StatusMsg  *string `thrift:"StatusMsg,2,optional" form:"status_msg" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
+	StatusCode int32   `thrift:"StatusCode,1" form:"status_code" json:"status_code" query:"status_code"`
+	StatusMsg  *string `thrift:"StatusMsg,2,optional" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
 }
 
 func NewDouyinFavoriteActionResponse() *DouyinFavoriteActionResponse {
@@ -4997,7 +5168,7 @@ func (p *DouyinFavoriteListResponse) String() string {
 
 type DouyinCommentActionRequest struct {
 	Token       string  `thrift:"Token,1" form:"token" json:"token" query:"token"`
-	VideoId     int64   `thrift:"VideoId,2" form:"video_id" json:"video_id" query:"video_id"`
+	VideoId     int64   `thrift:"VideoId,2" form:"video_id" form:"video_id" json:"video_id" query:"video_id"`
 	ActionType  int32   `thrift:"ActionType,3" form:"action_type" json:"action_type" query:"action_type"`
 	CommentText *string `thrift:"CommentText,4,optional" form:"comment_text" json:"comment_text,omitempty" query:"comment_text"`
 	CommentId   *int64  `thrift:"CommentId,5,optional" form:"comment_id" json:"comment_id,omitempty" query:"comment_id"`
@@ -5341,7 +5512,7 @@ func (p *DouyinCommentActionRequest) String() string {
 type DouyinCommentActionResponse struct {
 	StatusCode int32    `thrift:"StatusCode,1" form:"status_code" json:"status_code" query:"status_code"`
 	StatusMsg  *string  `thrift:"StatusMsg,2,optional" form:"status_msg" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
-	Comment    *Comment `thrift:"Comment,3,optional" form:"comment" json:"comment,omitempty" query:"comment"`
+	Comment    *Comment `thrift:"Comment,3,optional" form:"comment" form:"comment" json:"comment,omitempty" query:"comment"`
 }
 
 func NewDouyinCommentActionResponse() *DouyinCommentActionResponse {
@@ -5589,8 +5760,8 @@ func (p *DouyinCommentActionResponse) String() string {
 }
 
 type DouyinCommentListRequest struct {
-	Token   string `thrift:"Token,1" form:"token" json:"token" query:"token"`
-	VideoId int64  `thrift:"VideoId,2" form:"video_id" json:"video_id" query:"video_id"`
+	Token   string `thrift:"Token,1" form:"token" form:"token" json:"token" query:"token"`
+	VideoId int64  `thrift:"VideoId,2" form:"video_id" form:"video_id" json:"video_id" query:"video_id"`
 }
 
 func NewDouyinCommentListRequest() *DouyinCommentListRequest {
@@ -5773,8 +5944,8 @@ func (p *DouyinCommentListRequest) String() string {
 
 type DouyinCommentListResponse struct {
 	StatusCode  int32      `thrift:"StatusCode,1" form:"status_code" json:"status_code" query:"status_code"`
-	StatusMsg   *string    `thrift:"StatusMsg,2,optional" form:"status_msg" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
-	CommentList []*Comment `thrift:"CommentList,3" form:"comment_list" form:"comment_list" json:"comment_list" query:"comment_list"`
+	StatusMsg   *string    `thrift:"StatusMsg,2,optional" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
+	CommentList []*Comment `thrift:"CommentList,3" form:"comment_list" json:"comment_list" query:"comment_list"`
 }
 
 func NewDouyinCommentListResponse() *DouyinCommentListResponse {
@@ -6032,7 +6203,7 @@ func (p *DouyinCommentListResponse) String() string {
 
 type DouyinRelationActionRequest struct {
 	Token      string `thrift:"Token,1" form:"token" form:"token" json:"token" query:"token"`
-	ToUserId   int64  `thrift:"ToUserId,2" form:"to_user_id" json:"to_user_id" query:"to_user_id"`
+	ToUserId   int64  `thrift:"ToUserId,2" form:"to_user_id" form:"to_user_id" json:"to_user_id" query:"to_user_id"`
 	ActionType int32  `thrift:"ActionType,3" form:"action_type" json:"action_type" query:"action_type"`
 }
 
@@ -6455,7 +6626,7 @@ func (p *DouyinRelationActionResponse) String() string {
 
 type DouyinRelationFollowListRequest struct {
 	UserId int64  `thrift:"UserId,1" form:"user_id" json:"user_id" query:"user_id"`
-	Token  string `thrift:"Token,2" form:"token" json:"token" query:"token"`
+	Token  string `thrift:"Token,2" form:"token" form:"token" json:"token" query:"token"`
 }
 
 func NewDouyinRelationFollowListRequest() *DouyinRelationFollowListRequest {
@@ -6638,7 +6809,7 @@ func (p *DouyinRelationFollowListRequest) String() string {
 
 type DouyinRelationFollowListResponse struct {
 	StatusCode int32   `thrift:"StatusCode,1" form:"status_code" json:"status_code" query:"status_code"`
-	StatusMsg  *string `thrift:"StatusMsg,2,optional" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
+	StatusMsg  *string `thrift:"StatusMsg,2,optional" form:"status_msg" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
 	UserList   []*User `thrift:"UserList,3" form:"user_list" json:"user_list" query:"user_list"`
 }
 
@@ -6896,8 +7067,8 @@ func (p *DouyinRelationFollowListResponse) String() string {
 }
 
 type DouyinRelationFollowerListRequest struct {
-	UserId int64  `thrift:"UserId,1" form:"user_id" form:"user_id" json:"user_id" query:"user_id"`
-	Token  string `thrift:"Token,2" form:"token" json:"token" query:"token"`
+	UserId int64  `thrift:"UserId,1" form:"user_id" json:"user_id" query:"user_id"`
+	Token  string `thrift:"Token,2" form:"token" form:"token" json:"token" query:"token"`
 }
 
 func NewDouyinRelationFollowerListRequest() *DouyinRelationFollowerListRequest {
@@ -7079,9 +7250,9 @@ func (p *DouyinRelationFollowerListRequest) String() string {
 }
 
 type DouyinRelationFollowerListResponse struct {
-	StatusCode int32   `thrift:"StatusCode,1" form:"status_code" form:"status_code" json:"status_code" query:"status_code"`
-	StatusMsg  *string `thrift:"StatusMsg,2,optional" form:"status_msg" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
-	UserList   []*User `thrift:"UserList,3" form:"user_list" json:"user_list" query:"user_list"`
+	StatusCode int32   `thrift:"StatusCode,1" form:"status_code" json:"status_code" query:"status_code"`
+	StatusMsg  *string `thrift:"StatusMsg,2,optional" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
+	UserList   []*User `thrift:"UserList,3" form:"user_list" form:"user_list" json:"user_list" query:"user_list"`
 }
 
 func NewDouyinRelationFollowerListResponse() *DouyinRelationFollowerListResponse {
@@ -7780,8 +7951,9 @@ func (p *DouyinRelationFriendListResponse) String() string {
 }
 
 type DouyinMessageChatRequest struct {
-	Token    string `thrift:"Token,1" form:"token" json:"token" query:"token"`
-	ToUserId int64  `thrift:"ToUserId,2" form:"to_user_id" json:"to_user_id" query:"to_user_id"`
+	Token      string `thrift:"Token,1" form:"token" json:"token" query:"token"`
+	ToUserId   int64  `thrift:"ToUserId,2" form:"to_user_id" form:"to_user_id" json:"to_user_id" query:"to_user_id"`
+	PreMsgTime int64  `thrift:"PreMsgTime,3" form:"pre_msg_time" form:"pre_msg_time" json:"pre_msg_time" query:"pre_msg_time"`
 }
 
 func NewDouyinMessageChatRequest() *DouyinMessageChatRequest {
@@ -7796,9 +7968,14 @@ func (p *DouyinMessageChatRequest) GetToUserId() (v int64) {
 	return p.ToUserId
 }
 
+func (p *DouyinMessageChatRequest) GetPreMsgTime() (v int64) {
+	return p.PreMsgTime
+}
+
 var fieldIDToName_DouyinMessageChatRequest = map[int16]string{
 	1: "Token",
 	2: "ToUserId",
+	3: "PreMsgTime",
 }
 
 func (p *DouyinMessageChatRequest) Read(iprot thrift.TProtocol) (err error) {
@@ -7833,6 +8010,16 @@ func (p *DouyinMessageChatRequest) Read(iprot thrift.TProtocol) (err error) {
 		case 2:
 			if fieldTypeId == thrift.I64 {
 				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				if err = iprot.Skip(fieldTypeId); err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField3(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else {
@@ -7888,6 +8075,15 @@ func (p *DouyinMessageChatRequest) ReadField2(iprot thrift.TProtocol) error {
 	return nil
 }
 
+func (p *DouyinMessageChatRequest) ReadField3(iprot thrift.TProtocol) error {
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		p.PreMsgTime = v
+	}
+	return nil
+}
+
 func (p *DouyinMessageChatRequest) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
 	if err = oprot.WriteStructBegin("DouyinMessageChatRequest"); err != nil {
@@ -7900,6 +8096,10 @@ func (p *DouyinMessageChatRequest) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField2(oprot); err != nil {
 			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
 			goto WriteFieldError
 		}
 
@@ -7955,6 +8155,23 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
 }
 
+func (p *DouyinMessageChatRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("PreMsgTime", thrift.I64, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.PreMsgTime); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
 func (p *DouyinMessageChatRequest) String() string {
 	if p == nil {
 		return "<nil>"
@@ -7965,7 +8182,7 @@ func (p *DouyinMessageChatRequest) String() string {
 type DouyinMessageChatResponse struct {
 	StatusCode  int32      `thrift:"StatusCode,1" form:"status_code" json:"status_code" query:"status_code"`
 	StatusMsg   *string    `thrift:"StatusMsg,2,optional" form:"status_msg" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
-	MessageList []*Message `thrift:"MessageList,3" form:"message_list" json:"message_list" query:"message_list"`
+	MessageList []*Message `thrift:"MessageList,3" form:"message_list" form:"message_list" json:"message_list" query:"message_list"`
 }
 
 func NewDouyinMessageChatResponse() *DouyinMessageChatResponse {
@@ -8222,11 +8439,11 @@ func (p *DouyinMessageChatResponse) String() string {
 }
 
 type Message struct {
-	Id         int64  `thrift:"Id,1" form:"id" form:"id" json:"id" query:"id"`
+	Id         int64  `thrift:"Id,1" form:"id" json:"id" query:"id"`
 	ToUserId   int64  `thrift:"ToUserId,2" form:"to_user_id" json:"to_user_id" query:"to_user_id"`
 	FromUserId int64  `thrift:"FromUserId,3" form:"from_user_id" json:"from_user_id" query:"from_user_id"`
-	Content    string `thrift:"Content,4" form:"content" json:"content" query:"content"`
-	CreateTime *int64 `thrift:"CreateTime,5,optional" form:"create_time" json:"create_time,omitempty" query:"create_time"`
+	Content    string `thrift:"Content,4" form:"content" form:"content" json:"content" query:"content"`
+	CreateTime *int64 `thrift:"CreateTime,5,optional" form:"create_time" form:"create_time" json:"create_time,omitempty" query:"create_time"`
 }
 
 func NewMessage() *Message {
@@ -8555,7 +8772,7 @@ func (p *Message) String() string {
 
 type DouyinMessageActionRequest struct {
 	Token      string `thrift:"Token,1" form:"token" json:"token" query:"token"`
-	ToUserId   int64  `thrift:"ToUserId,2" form:"to_user_id" form:"to_user_id" json:"to_user_id" query:"to_user_id"`
+	ToUserId   int64  `thrift:"ToUserId,2" form:"to_user_id" json:"to_user_id" query:"to_user_id"`
 	ActionType int32  `thrift:"ActionType,3" form:"action_type" json:"action_type" query:"action_type"`
 	Content    string `thrift:"Content,4" form:"content" json:"content" query:"content"`
 }
@@ -8829,7 +9046,7 @@ func (p *DouyinMessageActionRequest) String() string {
 }
 
 type DouyinMessageActionResponse struct {
-	StatusCode int32   `thrift:"StatusCode,1" form:"status_code" form:"status_code" json:"status_code" query:"status_code"`
+	StatusCode int32   `thrift:"StatusCode,1" form:"status_code" json:"status_code" query:"status_code"`
 	StatusMsg  *string `thrift:"StatusMsg,2,optional" form:"status_msg" json:"status_msg,omitempty" query:"status_msg"`
 }
 

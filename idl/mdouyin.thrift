@@ -52,8 +52,11 @@ struct User {
     6: string Avatar (api.body="avatar", api.query="avatar", api.form="avatar") // 用户头像Url
     7: optional string Message (api.body="message", api.query="message", api.form="message") // 和该好友的最新聊天消息
     8: optional i64 MsgType (api.body="msg_type", api.query="msg_type", api.form="msg_type") // message消息的类型，0 => 当前请求用户接收的消息， 1 => 当前请求用户发送的消息
-    9: optional i64 FavoriteCount (api.body="favorite_count", api.query="favorite_count", api.form="favorite_count") // 被点赞总数
+    9: optional i64 FavoriteCount (api.body="favorite_count", api.query="favorite_count", api.form="favorite_count") // 点赞总数
     10: optional i64 WorkCount (api.body="work_count", api.query="work_count", api.form="work_count") // 作品总数
+    11: optional i64 TotalFavorited (api.body="total_favorited", api.query="total_favorited", api.form="total_favorited") // 被点赞总数
+    12: optional string BackgroundImage (api.body="background_image", api.query="background_image", api.form="background_image") // 个人简介
+    13: optional string Signature (api.body="signature", api.query="signature", api.form="signature") // 个人简介
 }
 struct Comment {
     1: i64 Id (api.body="id", api.query="id", api.form="id") // 视频评论id
@@ -196,6 +199,7 @@ struct DouyinRelationFriendListResponse {
 struct DouyinMessageChatRequest {
     1: string Token (api.body="token", api.query="token", api.form="token") // 用户鉴权token
     2: i64 ToUserId (api.body="to_user_id", api.query="to_user_id", api.form="to_user_id") // 对方用户id
+    3: i64 PreMsgTime (api.body="pre_msg_time", api.query="pre_msg_time", api.form="pre_msg_time") // 上次最新消息的时间
 }
 struct DouyinMessageChatResponse {
     1: i32 StatusCode (api.body="status_code", api.query="status_code", api.form="status_code") // 状态码，0-成功，其他值-失败

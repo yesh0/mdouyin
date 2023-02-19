@@ -99,7 +99,7 @@ func Increment(id int64, kind int8, delta int32) (err error) {
 			id: id,
 		}
 		// Approximated.
-		for i := 0; i < len(newCounters.counts); i++ {
+		for i := 0; i < max_counts; i++ {
 			newCounters.counts[i] = counters.counts[i] + atomic.LoadInt32(&counters.deltas[i])
 		}
 		newCounters.Add(kind, delta)
@@ -118,15 +118,18 @@ func Get(id int64) (*Counters, error) {
 		id: id,
 	}
 
-	inner := [4]CounterDO{}
+	inner := [max_counts]CounterDO{}
 	counts := inner[0:0]
 
-	result := db.Where("id = ?", id).Limit(4).Find(&counts)
+	result := db.Where("id = ?", id).Limit(max_counts).Find(&counts)
 	if err := result.Error; err != nil {
 		return nil, err
 	}
 
 	for _, count := range counts {
+		if count.Kind >= max_counts {
+			continue
+		}
 		counters.counts[count.Kind] = count.Count
 	}
 
@@ -138,10 +141,12 @@ func Invalidate(id int64) {
 	cache.Del(id)
 }
 
+const max_counts = 6
+
 type Counters struct {
 	id     int64
-	deltas [4]int32
-	counts [4]int32
+	deltas [max_counts]int32
+	counts [max_counts]int32
 	// This field records concurrent operations and OnExit calls.
 	lock int32
 }
@@ -186,10 +191,16 @@ func (c *Counters) Unlock() (err error) {
 }
 
 func (c *Counters) Add(kind int8, delta int32) {
+	if kind >= max_counts {
+		return
+	}
 	atomic.AddInt32(&c.deltas[kind], delta)
 }
 
 func (c *Counters) Count(kind int8) int32 {
+	if kind >= max_counts {
+		return 0
+	}
 	return c.counts[kind] + atomic.LoadInt32(&c.deltas[kind])
 }
 

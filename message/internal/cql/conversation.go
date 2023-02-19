@@ -6,30 +6,24 @@ import (
 	"common/utils"
 	"context"
 	"sync"
+	"time"
 
+	"github.com/gocql/gocql"
 	"golang.org/x/sync/semaphore"
 )
 
 const (
-	stmt_list_conversation = "SELECT id, status, message FROM message.conversation " +
+	stmt_list_latest_conversation = "SELECT id, status, message FROM message.conversation " +
 		"WHERE first = ? AND second = ? " +
-		"ORDER BY id DESC PER PARTITION LIMIT ?"
+		"ORDER BY id DESC PER PARTITION LIMIT 1"
+	stmt_list_conversation_after = "SELECT id, status, message FROM message.conversation " +
+		"WHERE first = ? AND second = ? AND id > ?" +
+		"ORDER BY id ASC PER PARTITION LIMIT ?"
 	stmt_send_message = "INSERT INTO message.conversation " +
 		"(first, second, id, status, message) VALUES (?, ?, ?, ?, ?)"
 )
 
-func ListMessages(user int64, friend int64, limit int) []*rpc.Message {
-	if user > friend {
-		user, friend = friend, user
-	}
-
-	scanner := session.Query(
-		stmt_list_conversation,
-		user,
-		friend,
-		limit,
-	).Iter().Scanner()
-
+func scanMessages(scanner gocql.Scanner, user int64, friend int64) []*rpc.Message {
 	messages := make([]*rpc.Message, 0)
 	for scanner.Next() {
 		var (
@@ -51,7 +45,31 @@ func ListMessages(user int64, friend int64, limit int) []*rpc.Message {
 		}
 		messages = append(messages, msg)
 	}
+	return messages
+}
 
+func ListMessages(user int64, friend int64, after int64, limit int) []*rpc.Message {
+	if user > friend {
+		user, friend = friend, user
+	}
+
+	scanner := session.Query(
+		stmt_list_conversation_after,
+		user,
+		friend,
+		snowy.FromUpperTime(time.UnixMilli(after)),
+		limit,
+	).Iter().Scanner()
+
+	messages := scanMessages(scanner, user, friend)
+
+	return reversed(messages)
+}
+
+func reversed(messages []*rpc.Message) []*rpc.Message {
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
 	return messages
 }
 
@@ -85,7 +103,18 @@ func LatestMessages(ctx context.Context, user int64, friends []int64) []*rpc.Mes
 			break
 		}
 		go func() {
-			latest := ListMessages(user, final_friend, 1)
+			var a, b int64
+			if user > final_friend {
+				a, b = final_friend, user
+			} else {
+				a, b = user, final_friend
+			}
+			scanner := session.Query(
+				stmt_list_latest_conversation,
+				a,
+				b,
+			).Iter().Scanner()
+			latest := scanMessages(scanner, a, b)
 			if len(latest) > 0 {
 				m.Lock()
 				if ctx.Err() == nil {
