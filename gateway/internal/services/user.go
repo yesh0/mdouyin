@@ -4,21 +4,47 @@ import (
 	"common"
 	"common/kitex_gen/douyin/rpc"
 	"context"
-	"crypto/md5"
-	"fmt"
+	"encoding/binary"
 	"gateway/biz/model/douyin/core"
 	"gateway/internal/cache"
 	"gateway/internal/db"
-	"strings"
+	"hash/fnv"
 )
 
+var temporary_background = "http://rollinggirls.com/img/bg_intro.jpg"
+var temporary_quote = "「生存戦略、しましょうか。」"
+var temporary_avatars = []string{
+	"http://yurikuma.jp/images/special/008/yk_icon_kuma1.png",
+	"http://yurikuma.jp/images/special/008/yk_icon_kuma2.png",
+	"http://yurikuma.jp/images/special/008/yk_icon_kuma3.png",
+	"http://yurikuma.jp/images/special/006/icon_sexy_bear.png",
+	"http://yurikuma.jp/images/special/006/icon_cool_bear.png",
+	"http://yurikuma.jp/images/special/006/icon_beauty_bear.png",
+	"http://yurikuma.jp/images/special/005/icon_ginko_winning.png",
+	"http://yurikuma.jp/images/special/005/icon_lulu_winning.png",
+	"http://yurikuma.jp/images/special/004/icon_sexy.png",
+	"http://yurikuma.jp/images/special/004/icon_cool.png",
+	"http://yurikuma.jp/images/special/004/icon_beauty.png",
+	"http://yurikuma.jp/images/special/003/icon_ginko_bear.png",
+	"http://yurikuma.jp/images/special/003/icon_lulu_bear.png",
+	"http://yurikuma.jp/images/special/001/icon_ginko.png",
+	"http://yurikuma.jp/images/special/001/icon_lulu.png",
+	"http://yurikuma.jp/images/special/001/icon_kureha.png",
+}
+
 func FromUser(u *db.UserDO, followed bool) (user *core.User) {
+	bytes := [8]byte{}
+	binary.LittleEndian.PutUint64(bytes[:], uint64(u.Id))
+	hasher := fnv.New32()
+	hasher.Write(bytes[:])
+	hash := hasher.Sum32()
 	user = &core.User{
-		Id:       int64(u.Id),
-		Name:     u.Nickname,
-		IsFollow: followed,
-		Avatar: fmt.Sprintf("https://cravatar.cn/avatar/%x",
-			md5.Sum([]byte(strings.ToLower(u.Name)))),
+		Id:              u.Id,
+		Name:            u.Nickname,
+		IsFollow:        followed,
+		Avatar:          temporary_avatars[hash%uint32(len(temporary_avatars))],
+		BackgroundImage: &temporary_background,
+		Signature:       &temporary_quote,
 	}
 	return
 }
@@ -50,6 +76,7 @@ func fillUserCounts(ctx context.Context, ids []int64, userMap map[int64]*core.Us
 			common.KindUserFollowingCount,
 			common.KindUserFavoriteCount,
 			common.KindUserWorkCount,
+			common.KindUserTotalFavorited,
 		},
 	})
 	if err != nil {
@@ -80,6 +107,8 @@ func fillKindCounts(count *rpc.Counts, user *core.User) {
 			user.FavoriteCount = &i
 		case common.KindUserWorkCount:
 			user.WorkCount = &i
+		case common.KindUserTotalFavorited:
+			user.TotalFavorited = &i
 		}
 	}
 }
@@ -123,6 +152,7 @@ func GatherUserInfoFromIds(ctx context.Context, user int64,
 			if !counts || (u.FollowCount != nil &&
 				u.FollowerCount != nil &&
 				u.FavoriteCount != nil &&
+				u.TotalFavorited != nil &&
 				u.WorkCount != nil) {
 				userMap[id] = u
 				continue
