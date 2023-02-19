@@ -28,8 +28,18 @@ def cast_ttype_array(array, ttype):
     return list(map(lambda j: cast_ttype(j, ttype), array))
 
 
+last_response = None
+verbose = False
 def assert_ok(response: requests.Response, ttype):
     """Assert and return the inner json."""
+    global last_response
+    last_response = response
+    if verbose:
+        print(
+            response.status_code,
+            response.url,
+            response.text,
+        )
     assert response.status_code == 200
     json = response.json()
     assert json["status_code"] == 0
@@ -200,7 +210,11 @@ def log_test(func):
             end=None,
         )
         indent += 1
-        result = func(*args, **kwargs)
+        try:
+            result = func(*args, **kwargs)
+        except AssertionError as e:
+            print(last_response)
+            raise e
         indent -= 1
         print(
             f"\t{colorama.Fore.GREEN}{colorama.Style.BRIGHT}ok{colorama.Style.RESET_ALL}")
@@ -240,7 +254,6 @@ def test_relation(s: Server, test=None):
                 s.user_info(me).User,
                 ttypes.User
             )
-            print(u, u.FollowCount, u.FollowerCount)
             assert u.FollowerCount == j + 1
             assert u.FollowCount == i
     if test != None:
@@ -501,6 +514,11 @@ if __name__ == "__main__":
         available.append(s)
         return len(args) == 0 or s in args
     s = Server("http://127.0.0.1:8000")
+
+    if len(args) > 0 and args[0] == "-v":
+        verbose = True
+        args = args[1:]
+
     if wants("user"):
         for i in range(3):
             test_user_info(s)
