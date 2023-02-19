@@ -30,6 +30,8 @@ def cast_ttype_array(array, ttype):
 
 last_response = None
 verbose = False
+
+
 def assert_ok(response: requests.Response, ttype):
     """Assert and return the inner json."""
     global last_response
@@ -470,8 +472,8 @@ def generate_data(s: Server):
         print("relation")
         for user in users:
             s.follow(me, user)
-        for i in range(0, 10, 2):
-            s.follow(users[i], me)
+        for user in users[0:10:2]:
+            s.follow(user, me)
         # Videos
         print("videos")
         file = "./cc_ink_stamp_animation_cc0.mp4"
@@ -483,20 +485,23 @@ def generate_data(s: Server):
             "./Pexels Videos 1943483.mp4",
             "./Pexels Videos 2421545.mp4",
         ]
-        for i, user in enumerate(users):
+        for i, user in enumerate(users[0:5]):
             s.publish(
-                user, videos[i % 5], "CC0 Video: " + videos[i % 5] + random_name())
+                user, videos[i], "CC0 Video: " + videos[i] + " " + random_name())
         print("reaction")
         time.sleep(10)
         # Reaction
-        for i, user in enumerate(users):
-            if len(s.list_videos(user).VideoList) == 0:
+        for i, user in enumerate(users[0:5]):
+            while len(s.list_videos(user).VideoList) == 0:
                 print("sleeping")
                 time.sleep(3)
-                continue
             video = cast_ttype(s.list_videos(user).VideoList[0], ttypes.Video)
             s.like(me, video)
             s.comment(me, video, "Good work! " + videos[i % 5])
+        for user in users[0:10:2]:
+            video = cast_ttype(s.list_videos(me).VideoList[0], ttypes.Video)
+            s.like(user, video)
+            s.comment(user, video, "From " + str(user.UserId))
         # Message
         print("message")
         s.message(me, users[0], "wwww")
@@ -513,7 +518,7 @@ if __name__ == "__main__":
     def wants(s: str):
         available.append(s)
         return len(args) == 0 or s in args
-    s = Server("http://127.0.0.1:8000")
+    s = Server("http://101.43.176.192:8000")
 
     if len(args) > 0 and args[0] == "-v":
         verbose = True
