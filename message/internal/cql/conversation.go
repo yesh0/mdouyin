@@ -59,7 +59,7 @@ func ListMessages(user int64, friend int64, after int64, limit int) []*rpc.Messa
 		stmt_list_conversation_after,
 		user,
 		friend,
-		snowy.FromUpperTime(time.UnixMilli(after)),
+		snowy.FromLowerTime(time.UnixMilli(after)),
 		limit,
 	).Iter().Scanner()
 
